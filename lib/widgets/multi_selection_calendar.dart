@@ -21,6 +21,7 @@ class MultiSelectionCalendar extends StatefulWidget {
     this.maxYear,
     this.initYear,
     this.dayBuilder,
+    this.headerBuilder,
   }) : assert(
          initMonthIndex == null ||
              (initMonthIndex >= 0 && initMonthIndex <= 11),
@@ -68,6 +69,21 @@ class MultiSelectionCalendar extends StatefulWidget {
   final Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
   dayBuilder;
 
+  /// Custom header builder for the calendar.
+  /// [onLoadNextMonth] is called when the user wants to load the next month,
+  /// if null the next month button should be disabled.
+  /// [onLoadPrevMonth] is called when the user wants to load the previous month,
+  /// if null the previous month button should be disabled.
+  /// [onLoadNewYear] is called when the user selects a new year.
+  final Widget? Function(
+    int selectedYear,
+    int selectedMonthIndex,
+    VoidCallback? onLoadNextMonth,
+    VoidCallback? onLoadPrevMonth,
+    void Function(int year) onLoadNewYear,
+  )?
+  headerBuilder;
+
   @override
   State<MultiSelectionCalendar> createState() => _MultiSelectionCalendarState();
 }
@@ -75,7 +91,7 @@ class MultiSelectionCalendar extends StatefulWidget {
 class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
   late final SelectionNotifier _selectionNotifier;
 
-  late int initMonthIndex;
+  late int monthIndex;
   late int minYear = widget.minYear ?? DateTime.now().year - 5;
   late int maxYear = widget.maxYear ?? DateTime.now().year + 5;
   late int selectedYear = widget.initYear ?? DateTime.now().year;
@@ -85,6 +101,9 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
     return Month(List.generate(daysInMonth, (day) => day + 1));
   });
 
+  bool get enablePrevMonth => monthIndex > 0 || selectedYear > minYear;
+  bool get enableNextMonth => monthIndex < 12 && selectedYear < maxYear;
+
   @override
   void initState() {
     _selectionNotifier = SelectionNotifier(
@@ -92,7 +111,7 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
       selections: widget.initialSelections,
       onSelectionAdded: widget.onSelectionAdded,
     );
-    initMonthIndex = widget.initMonthIndex ?? DateTime.now().month - 1;
+    monthIndex = widget.initMonthIndex ?? DateTime.now().month - 1;
     super.initState();
   }
 
@@ -104,7 +123,7 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    Month? prevMonth = initMonthIndex > 0 ? months[initMonthIndex - 1] : null;
+    Month? prevMonth = monthIndex > 0 ? months[monthIndex - 1] : null;
     if (prevMonth == null) {
       // last month of the prev year if applicable
       if (selectedYear > minYear) {
@@ -117,7 +136,7 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
       }
     }
 
-    Month? nextMonth = initMonthIndex < 11 ? months[initMonthIndex + 1] : null;
+    Month? nextMonth = monthIndex < 11 ? months[monthIndex + 1] : null;
     if (nextMonth == null) {
       // first month of the next year if applicable
       if (selectedYear < maxYear) {
@@ -127,93 +146,25 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
       }
     }
 
-    final enablePrevMonth = initMonthIndex > 0 || selectedYear > minYear;
-    final enableNextMonth = initMonthIndex < 12 && selectedYear < maxYear;
-
     return Material(
       color: Colors.transparent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 16,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Row(
-                  spacing: 16,
-                  children: [
-                    Text(
-                      DateFormat.MMMM().format(
-                        DateTime(DateTime.now().year, initMonthIndex + 1),
-                      ),
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    DropdownButton(
-                      underline: const SizedBox.shrink(),
-                      items: List.generate(maxYear - minYear, (relativeYear) {
-                        final year = minYear + relativeYear;
-                        return DropdownMenuItem(
-                          value: year,
-                          child: Text(year.toString()),
-                        );
-                      }),
-                      onChanged: (newYear) {
-                        if (newYear != null) {
-                          setState(() {
-                            selectedYear = newYear;
-                          });
-                        }
-                      },
-                      value: selectedYear,
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: enablePrevMonth
-                        ? () {
-                            setState(() {
-                              if (initMonthIndex == 0) {
-                                initMonthIndex = 11;
-                                if (enablePrevMonth) {
-                                  selectedYear--;
-                                }
-                              } else {
-                                initMonthIndex--;
-                              }
-                            });
-                          }
-                        : null,
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  ),
-                  IconButton(
-                    onPressed: enableNextMonth
-                        ? () {
-                            setState(() {
-                              if (initMonthIndex == 11) {
-                                initMonthIndex = 0;
-                                if (enableNextMonth) {
-                                  selectedYear++;
-                                }
-                              } else {
-                                initMonthIndex++;
-                              }
-                            });
-                          }
-                        : null,
-                    icon: const Icon(Icons.arrow_forward_ios_rounded),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          widget.headerBuilder?.call(
+                selectedYear,
+                monthIndex,
+                enableNextMonth ? _loadNextMonth : null,
+                enablePrevMonth ? _loadPrevMonth : null,
+                _loadNewYear,
+              ) ??
+              _header(),
           _MonthCalendar(
             selectionNotifier: _selectionNotifier,
-            month: months[initMonthIndex],
+            month: months[monthIndex],
             dayDecoration: widget.dayDecoration ?? DayDecoration(),
-            monthIndex: initMonthIndex,
+            monthIndex: monthIndex,
             dayBuilder: widget.dayBuilder,
             year: selectedYear,
             prevMonth: prevMonth,
@@ -222,5 +173,91 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
         ],
       ),
     );
+  }
+
+  Widget _header() {
+    return Row(
+      children: [
+        Expanded(
+          child: Row(
+            spacing: 16,
+            children: [
+              Text(
+                DateFormat.MMMM().format(
+                  DateTime(DateTime.now().year, monthIndex + 1),
+                ),
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              DropdownButton(
+                underline: const SizedBox.shrink(),
+                items: List.generate(maxYear - minYear, (relativeYear) {
+                  final year = minYear + relativeYear;
+                  return DropdownMenuItem(
+                    value: year,
+                    child: Text(year.toString()),
+                  );
+                }),
+                onChanged: (newYear) {
+                  if (newYear == null) return;
+
+                  _loadNewYear(newYear);
+                },
+                value: selectedYear,
+              ),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              onPressed: enablePrevMonth ? _loadPrevMonth : null,
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            ),
+            IconButton(
+              onPressed: enableNextMonth ? _loadNextMonth : null,
+              icon: const Icon(Icons.arrow_forward_ios_rounded),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _loadPrevMonth() {
+    if (!enablePrevMonth) return;
+
+    setState(() {
+      if (monthIndex == 0) {
+        monthIndex = 11;
+        if (enablePrevMonth) {
+          selectedYear--;
+        }
+      } else {
+        monthIndex--;
+      }
+    });
+  }
+
+  void _loadNextMonth() {
+    if (!enableNextMonth) return;
+
+    setState(() {
+      if (monthIndex == 11) {
+        monthIndex = 0;
+        if (enableNextMonth) {
+          selectedYear++;
+        }
+      } else {
+        monthIndex++;
+      }
+    });
+  }
+
+  void _loadNewYear(int year) {
+    if (year < minYear || year > maxYear) return;
+
+    setState(() {
+      selectedYear = year;
+    });
   }
 }
