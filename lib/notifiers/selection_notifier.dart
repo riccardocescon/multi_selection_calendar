@@ -52,7 +52,7 @@ class SelectionNotifier extends ChangeNotifier {
     } else {
       final minDay = day.isBefore(_lastSelectedDay!) ? day : _lastSelectedDay!;
       final maxDay = day.isAfter(_lastSelectedDay!) ? day : _lastSelectedDay!;
-      final calendarSelection = CalendarSelection(
+      CalendarSelection calendarSelection = CalendarSelection(
         start: minDay,
         end: maxDay,
         color: _nextColor,
@@ -68,6 +68,42 @@ class SelectionNotifier extends ChangeNotifier {
 
           return false;
         });
+      } else if (conflictMode == ConflictMode.merge) {
+        final overlappingSelections = _selections.where((selection) {
+          if (_isDateinRange(minDay, selection)) return true;
+          if (_isDateinRange(maxDay, selection)) return true;
+
+          if (_isDateinRange(selection.start, calendarSelection)) return true;
+          if (_isDateinRange(selection.end, calendarSelection)) return true;
+
+          return false;
+        }).toList();
+
+        if (overlappingSelections.isNotEmpty) {
+          DateTime mergedStart = calendarSelection.start;
+          DateTime mergedEnd = calendarSelection.end;
+
+          for (final selection in overlappingSelections) {
+            if (selection.start.isBefore(mergedStart)) {
+              mergedStart = selection.start;
+            }
+            if (selection.end.isAfter(mergedEnd)) {
+              mergedEnd = selection.end;
+            }
+          }
+
+          // Remove overlapping selections
+          _selections.removeWhere(
+            (selection) => overlappingSelections.contains(selection),
+          );
+
+          // Create new merged selection
+          calendarSelection = CalendarSelection(
+            start: mergedStart,
+            end: mergedEnd,
+            color: _nextColor,
+          );
+        }
       }
 
       _selections.add(calendarSelection);

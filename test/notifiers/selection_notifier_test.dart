@@ -287,5 +287,82 @@ void main() {
         selectionNotifier.dispose();
       });
     });
+
+    group("Merge", () {
+      test("Merge first day", () {
+        final selectionNotifier = SelectionNotifier(
+          conflictMode: ConflictMode.merge,
+        );
+        final date1 = DateTime(2024, 6, 10);
+        final date2 = DateTime(2024, 6, 15);
+
+        selectionNotifier.selectDay(date1);
+        selectionNotifier.selectDay(date2);
+
+        final date3 = DateTime(2024, 6, 5);
+
+        selectionNotifier.selectDay(date3);
+
+        final selectionsDate1 = selectionNotifier.getSelections(date1);
+        expect(selectionsDate1.length, 1);
+        expect(selectionsDate1.first.start, date1);
+        expect(selectionsDate1.first.end, date2);
+
+        expect(selectionNotifier.lastSelectedDay, date3);
+
+        selectionNotifier.dispose();
+      });
+
+      test("Merge last day", () {
+        final selectionNotifier = SelectionNotifier(
+          conflictMode: ConflictMode.merge,
+        );
+
+        final date1 = DateTime(2024, 6, 10);
+        final date2 = DateTime(2024, 6, 15);
+        selectionNotifier.selectDay(date1);
+        selectionNotifier.selectDay(date2);
+
+        final date3 = DateTime(2024, 6, 20);
+        selectionNotifier.selectDay(date3);
+
+        final selectionsDate1 = selectionNotifier.getSelections(date1);
+        expect(selectionsDate1.length, 1);
+
+        final date4 = DateTime(2024, 6, 12);
+        selectionNotifier.selectDay(date4);
+
+        final selectionsDate2 = selectionNotifier.getSelections(date2);
+        expect(selectionsDate2.length, 1);
+        expect(selectionsDate2.first.start, date1);
+        expect(selectionsDate2.first.end, date3);
+
+        selectionNotifier.dispose();
+      });
+
+      test("Merge wrap", () {
+        final selectionNotifier = SelectionNotifier(
+          conflictMode: ConflictMode.merge,
+        );
+
+        final date1 = DateTime(2024, 6, 10);
+        final date2 = DateTime(2024, 6, 15);
+        selectionNotifier.selectDay(date1);
+        selectionNotifier.selectDay(date2);
+
+        final date3 = DateTime(2024, 6, 5);
+        selectionNotifier.selectDay(date3);
+
+        final date4 = DateTime(2024, 6, 20);
+        selectionNotifier.selectDay(date4);
+
+        final selectionsDate1 = selectionNotifier.getSelections(date1);
+        expect(selectionsDate1.length, 1);
+        expect(selectionsDate1.first.start, date3);
+        expect(selectionsDate1.first.end, date4);
+
+        selectionNotifier.dispose();
+      });
+    });
   });
 }

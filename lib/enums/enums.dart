@@ -1,1 +1,1 @@
-enum ConflictMode { overlap, override }
+enum ConflictMode { overlap, override, merge }
