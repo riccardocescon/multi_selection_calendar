@@ -7,6 +7,7 @@ class DayDecoration {
   final double verticalMargin;
   final Color? selectedDayBackgroundColor;
   final Color? cellBackgroundColor;
+  final Color? disabledDayBackgroundColor;
   final int cellSelectionAlpha;
 
   const DayDecoration({
@@ -16,6 +17,7 @@ class DayDecoration {
     this.verticalMargin = 1.0,
     this.selectedDayBackgroundColor,
     this.cellBackgroundColor,
+    this.disabledDayBackgroundColor,
     this.cellSelectionAlpha = 120,
   }) : assert(
          (cellSelectionAlpha >= 0 && cellSelectionAlpha <= 255),

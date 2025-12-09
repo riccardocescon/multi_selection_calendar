@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:multi_selection_calendar/enums/enums.dart';
 import 'package:multi_selection_calendar/extensions/extensions.dart';
+import 'package:multi_selection_calendar/notifiers/selection_notifier.dart';
 import 'package:multi_selection_calendar/widgets/multi_selection_calendar.dart';
 
 void main() {
@@ -34,7 +35,24 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
       home: Center(
-        child: Container(width: 600, child: MultiSelectionCalendar()),
+        child: Container(
+          width: 600,
+          child: MultiSelectionCalendar(
+            conflictMode: ConflictMode.override,
+            initialSelections: [
+              CalendarSelection(
+                start: DateTime.now(),
+                end: DateTime.now().add(const Duration(days: 4)),
+                color: Colors.green,
+              ),
+              CalendarSelection(
+                start: DateTime.now().subtract(const Duration(days: 5)),
+                end: DateTime.now().subtract(const Duration(days: 2)),
+                color: Colors.orange,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

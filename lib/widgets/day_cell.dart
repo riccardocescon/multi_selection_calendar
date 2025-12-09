@@ -8,53 +8,76 @@ class _DayCell extends StatelessWidget {
     this.dayBuilder,
   });
 
+  factory _DayCell.disabled({
+    required DateTime date,
+    required DayDecoration dayDecoration,
+  }) {
+    return _DayCell(
+      date: date,
+      dayDecoration: dayDecoration,
+      selectionNotifier: null,
+    );
+  }
+
   final DateTime date;
   final DayDecoration dayDecoration;
-  final SelectionNotifier selectionNotifier;
+  final SelectionNotifier? selectionNotifier;
   final Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
   dayBuilder;
 
   @override
   Widget build(BuildContext context) {
+    if (selectionNotifier == null) {
+      return _cell(context, null);
+    }
+    return ListenableBuilder(
+      listenable: selectionNotifier!,
+      builder: (context, child) => _selectableCell(context),
+    );
+  }
+
+  Widget _selectableCell(BuildContext context) {
     final overrideDay = dayBuilder?.call(
       date,
-      selectionNotifier.getSelections(date),
+      selectionNotifier!.getSelections(date),
     );
-
-    return ListenableBuilder(
-      listenable: selectionNotifier,
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () {
-            selectionNotifier.selectDay(date);
-          },
-          child:
-              overrideDay ??
-              Stack(
-                children: _buildSelectionDecoration.map((e) {
-                  return Container(
-                    decoration: e,
-                    alignment: Alignment.center,
-                    margin: EdgeInsets.symmetric(
-                      vertical: dayDecoration.verticalMargin,
-                    ),
-                    child: Text(
-                      '${date.day}',
-                      style:
-                          dayDecoration.dayTextStyle ??
-                          Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  );
-                }).toList(),
-              ),
-        );
+    return GestureDetector(
+      onTap: () {
+        selectionNotifier!.selectDay(date);
       },
+      child:
+          overrideDay ??
+          Stack(
+            children: _buildSelectionDecoration
+                .map((decoration) => _cell(context, decoration))
+                .toList(),
+          ),
+    );
+  }
+
+  Widget _cell(BuildContext context, Decoration? e) {
+    return Container(
+      decoration: e,
+      alignment: Alignment.center,
+      margin: EdgeInsets.symmetric(vertical: dayDecoration.verticalMargin),
+      child: Text(
+        '${date.day}',
+        style:
+            (dayDecoration.dayTextStyle ??
+                    Theme.of(context).textTheme.bodyLarge)
+                ?.copyWith(
+                  color: e == null
+                      ? (dayDecoration.disabledDayBackgroundColor ??
+                            Colors.grey.shade300)
+                      : null,
+                ),
+      ),
     );
   }
 
   List<BoxDecoration> get _buildSelectionDecoration {
     final isDaySelected =
-        selectionNotifier.lastSelectedDay?.isSameDate(date) ?? false;
+        selectionNotifier!.lastSelectedDay?.isSameDate(date) ?? false;
 
     if (isDaySelected) {
       return [
@@ -67,7 +90,7 @@ class _DayCell extends StatelessWidget {
       ];
     }
 
-    final selections = selectionNotifier.getSelections(date);
+    final selections = selectionNotifier!.getSelections(date);
     if (selections.isEmpty) {
       return [
         BoxDecoration(
