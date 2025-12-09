@@ -19,9 +19,11 @@ class SelectionNotifier extends ChangeNotifier {
   DateTime? _lastSelectedDay;
   final ConflictMode conflictMode;
   late Color _nextColor;
+  final void Function(CalendarSelection selection)? onSelectionAdded;
 
   SelectionNotifier({
     required this.conflictMode,
+    this.onSelectionAdded,
     List<CalendarSelection> selections = const [],
   }) {
     _selections.addAll(selections);
@@ -70,6 +72,7 @@ class SelectionNotifier extends ChangeNotifier {
 
       _selections.add(calendarSelection);
       _lastSelectedDay = null;
+      onSelectionAdded?.call(calendarSelection);
     }
 
     notifyListeners();

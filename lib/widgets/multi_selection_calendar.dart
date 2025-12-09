@@ -16,6 +16,7 @@ class MultiSelectionCalendar extends StatefulWidget {
     this.initialSelections = const [],
     this.initMonthIndex,
     this.dayDecoration,
+    this.onSelectionAdded,
     this.dayBuilder,
   });
 
@@ -31,6 +32,9 @@ class MultiSelectionCalendar extends StatefulWidget {
 
   /// Decoration for each day cell in the calendar.
   final DayDecoration? dayDecoration;
+
+  /// Callback when a new selection is added.
+  final void Function(CalendarSelection selection)? onSelectionAdded;
 
   /// Custom builder for day cells.
   /// date is the date of the cell.
@@ -57,6 +61,7 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
     _selectionNotifier = SelectionNotifier(
       conflictMode: widget.conflictMode,
       selections: widget.initialSelections,
+      onSelectionAdded: widget.onSelectionAdded,
     );
     initMonthIndex = widget.initMonthIndex ?? DateTime.now().month - 1;
     super.initState();

@@ -56,8 +56,8 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(title: Text('Multi Selection Calendar')),
         body: MultiSelectionCalendar(
-          onSelectionChanged: (selectedRanges) {
-            print('Selected ranges: $selectedRanges');
+          onSelectionAdded: (selection) {
+            print('Selected range: $selection');
           },
         ),
       ),
