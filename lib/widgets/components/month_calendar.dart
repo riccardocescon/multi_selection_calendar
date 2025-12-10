@@ -9,6 +9,7 @@ class _MonthCalendar extends StatelessWidget {
     required this.nextMonth,
     required this.dayDecoration,
     required this.selectionNotifier,
+    required this.animationSettings,
     this.dayBuilder,
   });
 
@@ -21,19 +22,27 @@ class _MonthCalendar extends StatelessWidget {
   final SelectionNotifier selectionNotifier;
   final Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
   dayBuilder;
+  final CalendarAnimationSettings animationSettings;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final itemWidth = constraints.maxWidth / 7;
-        return Wrap(
-          children: [
-            ..._weekdayHeaders(context, itemWidth),
-            ..._offsetPrevDays(itemWidth),
-            ..._days(itemWidth),
-            ..._offsetNextDays(itemWidth),
-          ],
+
+        return SlidingMonthView(
+          animationSettings: animationSettings,
+          month: DateTime(year, monthIndex),
+          builder: (month) {
+            return Wrap(
+              children: [
+                ..._weekdayHeaders(context, itemWidth),
+                ..._offsetPrevDays(itemWidth),
+                ..._days(itemWidth),
+                ..._offsetNextDays(itemWidth),
+              ],
+            );
+          },
         );
       },
     );
@@ -122,5 +131,122 @@ class _MonthCalendar extends StatelessWidget {
         ),
       );
     });
+  }
+}
+
+class SlidingMonthView extends StatefulWidget {
+  final Widget Function(DateTime month) builder;
+  final DateTime month;
+  final CalendarAnimationSettings animationSettings;
+
+  const SlidingMonthView({
+    super.key,
+    required this.builder,
+    required this.month,
+    required this.animationSettings,
+  });
+
+  @override
+  State<SlidingMonthView> createState() => _SlidingMonthViewState();
+}
+
+class _SlidingMonthViewState extends State<SlidingMonthView>
+    with SingleTickerProviderStateMixin {
+  late DateTime _oldMonth;
+  late DateTime _newMonth;
+  late AnimationController _controller;
+  late Animation<Offset> _incoming;
+  late Animation<Offset> _outgoing;
+  bool _isNext = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _oldMonth = widget.month;
+    _newMonth = widget.month;
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.animationSettings.duration,
+    );
+
+    _incoming = AlwaysStoppedAnimation<Offset>(Offset.zero);
+    _outgoing = AlwaysStoppedAnimation<Offset>(Offset.zero);
+  }
+
+  @override
+  void didUpdateWidget(covariant SlidingMonthView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.month == oldWidget.month) return;
+
+    // Determina direzione
+    _isNext = widget.month.isAfter(oldWidget.month);
+
+    _oldMonth = oldWidget.month;
+    _newMonth = widget.month;
+
+    _prepareAnimations(directionNext: _isNext);
+
+    _controller.forward(from: 0.0);
+  }
+
+  void _prepareAnimations({required bool directionNext}) {
+    if (directionNext) {
+      // next: nuovo entra da destra, vecchio esce a sinistra
+      _incoming = Tween(begin: const Offset(1, 0), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: widget.animationSettings.curve,
+        ),
+      );
+      _outgoing = Tween(begin: Offset.zero, end: const Offset(-1, 0)).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: widget.animationSettings.curve,
+        ),
+      );
+    } else {
+      // prev: nuovo entra da sinistra, vecchio esce a destra
+      _incoming = Tween(begin: const Offset(-1, 0), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: widget.animationSettings.curve,
+        ),
+      );
+      _outgoing = Tween(begin: Offset.zero, end: const Offset(1, 0)).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: widget.animationSettings.curve,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: Stack(
+        children: [
+          // Calendario entrante
+          SlideTransition(
+            position: _incoming,
+            child: widget.builder(_newMonth),
+          ),
+
+          // Calendario uscente
+          SlideTransition(
+            position: _outgoing,
+            child: widget.builder(_oldMonth),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

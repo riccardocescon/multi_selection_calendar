@@ -16,3 +16,5 @@ enum SelectionConflictMode {
   /// Will cause the first selection added to be removed to make space for the new one
   fifo,
 }
+
+enum SlideDirection { next, previous, none }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:multi_selection_calendar/entities/calendar_animation_settings.dart';
 import 'package:multi_selection_calendar/entities/calendar_decorations.dart';
 import 'package:multi_selection_calendar/entities/month.dart';
 import 'package:multi_selection_calendar/enums/enums.dart';
@@ -20,6 +21,7 @@ class MultiSelectionCalendar extends StatefulWidget {
     this.minYear,
     this.maxYear,
     this.initYear,
+    this.animationSettings,
     this.dayBuilder,
     this.selectionSettings,
     this.headerBuilder,
@@ -49,6 +51,7 @@ class MultiSelectionCalendar extends StatefulWidget {
     int? minYear,
     int? maxYear,
     int? initYear,
+    CalendarAnimationSettings? animationSettings,
     Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
     dayBuilder,
     Widget? Function(
@@ -69,6 +72,7 @@ class MultiSelectionCalendar extends StatefulWidget {
       minYear: minYear,
       maxYear: maxYear,
       initYear: initYear,
+      animationSettings: animationSettings,
       dayBuilder: dayBuilder,
       headerBuilder: headerBuilder,
       selectionSettings: SelectionSettings(
@@ -105,6 +109,8 @@ class MultiSelectionCalendar extends StatefulWidget {
 
   /// Selection settings for the calendar.
   final SelectionSettings? selectionSettings;
+
+  final CalendarAnimationSettings? animationSettings;
 
   /// Custom builder for day cells.
   /// date is the date of the cell.
@@ -213,6 +219,8 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
             year: selectedYear,
             prevMonth: prevMonth,
             nextMonth: nextMonth,
+            animationSettings:
+                widget.animationSettings ?? CalendarAnimationSettings(),
           ),
         ],
       ),
