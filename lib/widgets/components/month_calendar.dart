@@ -20,7 +20,11 @@ class _MonthCalendar extends StatelessWidget {
   final Month month;
   final DayDecoration dayDecoration;
   final SelectionNotifier selectionNotifier;
-  final Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
+  final Widget? Function(
+    DateTime date,
+    List<CalendarSelection> daySelections,
+    bool isSelected,
+  )?
   dayBuilder;
   final CalendarAnimationSettings animationSettings;
 

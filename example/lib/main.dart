@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:multi_selection_calendar/enums/enums.dart';
+import 'package:multi_selection_calendar/extensions/extensions.dart';
 import 'package:multi_selection_calendar/notifiers/selection_notifier.dart';
+import 'package:multi_selection_calendar/widgets/calendar_day_background.dart';
 import 'package:multi_selection_calendar/widgets/multi_selection_calendar.dart';
 
 void main() {
@@ -37,6 +40,7 @@ class MyApp extends StatelessWidget {
           width: 600,
           padding: const EdgeInsets.all(32),
           child: MultiSelectionCalendar(
+            conflictMode: ConflictMode.overlap,
             initialSelections: [
               CalendarSelection(
                 start: DateTime.now(),
@@ -49,6 +53,37 @@ class MyApp extends StatelessWidget {
                 color: Colors.orange,
               ),
             ],
+            dayBuilder: (date, daySelections, isSelected) {
+              if (isSelected) {
+                return CalendarDayBackground.selected(
+                  child: Text(
+                    '${date.day}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              }
+
+              if (daySelections.isEmpty) return null;
+              final isEndpoint = daySelections.any(
+                (e) => date.isSameDate(e.start) || date.isSameDate(e.end),
+              );
+              if (!isEndpoint) return null;
+
+              return CalendarDayBackground.day(
+                date: date,
+                selections: daySelections,
+                child: Text(
+                  '${date.day}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),

@@ -22,13 +22,20 @@ class _DayCell extends StatelessWidget {
   final DateTime date;
   final DayDecoration dayDecoration;
   final SelectionNotifier? selectionNotifier;
-  final Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
+  final Widget? Function(
+    DateTime date,
+    List<CalendarSelection> daySelections,
+    bool isSelected,
+  )?
   dayBuilder;
+
+  bool get isDaySelected =>
+      selectionNotifier?.lastSelectedDay?.isSameDate(date) ?? false;
 
   @override
   Widget build(BuildContext context) {
     if (selectionNotifier == null) {
-      return _cell(context, null);
+      return _cell(context);
     }
     return ListenableBuilder(
       listenable: selectionNotifier!,
@@ -40,122 +47,42 @@ class _DayCell extends StatelessWidget {
     final overrideDay = dayBuilder?.call(
       date,
       selectionNotifier!.getSelections(date),
+      isDaySelected,
     );
     return GestureDetector(
       onTap: () {
         selectionNotifier!.selectDay(date);
       },
-      child:
-          overrideDay ??
-          Stack(
-            children: _buildSelectionDecoration
-                .map((decoration) => _cell(context, decoration))
-                .toList(),
-          ),
+      child: overrideDay ?? _cell(context),
     );
   }
 
-  Widget _cell(BuildContext context, Decoration? e) {
-    return Container(
-      decoration: e,
-      alignment: Alignment.center,
-      margin: EdgeInsets.symmetric(vertical: dayDecoration.verticalMargin),
-      child: Text(
-        '${date.day}',
-        style:
-            (dayDecoration.dayTextStyle ??
-                    Theme.of(context).textTheme.bodyLarge)
-                ?.copyWith(
-                  color: e == null
-                      ? (dayDecoration.disabledDayBackgroundColor ??
-                            Colors.grey.shade300)
-                      : null,
-                ),
-      ),
-    );
-  }
-
-  List<BoxDecoration> get _buildSelectionDecoration {
-    final isDaySelected =
-        selectionNotifier!.lastSelectedDay?.isSameDate(date) ?? false;
-
+  Widget _cell(BuildContext context) {
     if (isDaySelected) {
-      return [
-        BoxDecoration(
-          color: dayDecoration.selectedDayBackgroundColor ?? Colors.blue,
-          borderRadius: BorderRadius.all(
-            Radius.circular(dayDecoration.selectedRadius),
-          ),
-        ),
-      ];
+      return CalendarDayBackground.selected(
+        child: _text(context, selectionNotifier != null),
+      );
     }
 
-    final selections = selectionNotifier!.getSelections(date);
-    if (selections.isEmpty) {
-      return [
-        BoxDecoration(
-          color: dayDecoration.cellBackgroundColor ?? Colors.transparent,
-        ),
-      ];
-    }
+    return CalendarDayBackground.day(
+      date: date,
+      selections: selectionNotifier?.getSelections(date) ?? [],
+      dayDecoration: dayDecoration,
+      child: _text(context, selectionNotifier != null),
+    );
+  }
 
-    List<BoxDecoration> decorations = [];
-
-    for (final selection in selections) {
-      Color? selectionColor;
-      BorderRadius? borderRadius;
-
-      if (date.isSameDate(selection.start)) {
-        selectionColor = selection.color;
-
-        if (date.isSameDate(selection.end)) {
-          // Single day selection
-          borderRadius = BorderRadius.all(
-            Radius.circular(dayDecoration.selectedRadius),
-          );
-        } else {
-          final backgroundBorder = BorderRadius.only(
-            topLeft: Radius.circular(9999),
-            bottomLeft: Radius.circular(9999),
-          );
-          borderRadius = BorderRadius.all(Radius.circular(9999));
-          decorations.add(
-            BoxDecoration(
-              color: selectionColor.withAlpha(dayDecoration.cellSelectionAlpha),
-              borderRadius: backgroundBorder,
-            ),
-          );
-        }
-      } else if (date.isSameDate(selection.end)) {
-        selectionColor = selection.color;
-
-        final backgroundBorder = BorderRadius.only(
-          topRight: Radius.circular(9999),
-          bottomRight: Radius.circular(9999),
-        );
-        borderRadius = BorderRadius.all(Radius.circular(9999));
-        decorations.add(
-          BoxDecoration(
-            color: selectionColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            borderRadius: backgroundBorder,
-          ),
-        );
-      } else if (date.isAfter(selection.start) &&
-          date.isBefore(selection.end)) {
-        selectionColor = selection.color.withAlpha(
-          dayDecoration.cellSelectionAlpha,
-        );
-
-        borderRadius = null;
-      }
-
-      if (selectionColor != null) {
-        decorations.add(
-          BoxDecoration(color: selectionColor, borderRadius: borderRadius),
-        );
-      }
-    }
-
-    return decorations;
+  Widget _text(BuildContext context, bool enabled) {
+    return Text(
+      '${date.day}',
+      style:
+          (dayDecoration.dayTextStyle ?? Theme.of(context).textTheme.bodyLarge)
+              ?.copyWith(
+                color: enabled
+                    ? null
+                    : (dayDecoration.disabledDayBackgroundColor ??
+                          Colors.grey.shade300),
+              ),
+    );
   }
 }

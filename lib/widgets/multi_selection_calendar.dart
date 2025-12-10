@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_selection_calendar/entities/calendar_animation_settings.dart';
+import 'package:multi_selection_calendar/widgets/calendar_day_background.dart';
 import 'package:multi_selection_calendar/entities/calendar_decorations.dart';
 import 'package:multi_selection_calendar/entities/calendar_picker_decoration.dart';
 import 'package:multi_selection_calendar/entities/header_decoration.dart';
@@ -60,7 +61,11 @@ class MultiSelectionCalendar extends StatefulWidget {
     int? maxYear,
     int? initYear,
     CalendarAnimationSettings? animationSettings,
-    Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
+    Widget? Function(
+      DateTime date,
+      List<CalendarSelection> daySelections,
+      bool isSelected,
+    )?
     dayBuilder,
     Widget? Function(
       int selectedYear,
@@ -134,7 +139,11 @@ class MultiSelectionCalendar extends StatefulWidget {
   /// Custom builder for day cells.
   /// date is the date of the cell.
   /// daySelections is the list of selections that include this date.
-  final Widget? Function(DateTime date, List<CalendarSelection> daySelections)?
+  final Widget? Function(
+    DateTime date,
+    List<CalendarSelection> daySelections,
+    bool isSelected,
+  )?
   dayBuilder;
 
   /// Custom header builder for the calendar.
