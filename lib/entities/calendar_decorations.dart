@@ -18,7 +18,7 @@ class DayDecoration {
     this.selectedDayBackgroundColor,
     this.cellBackgroundColor,
     this.disabledDayBackgroundColor,
-    this.cellSelectionAlpha = 120,
+    this.cellSelectionAlpha = 80,
   }) : assert(
          (cellSelectionAlpha >= 0 && cellSelectionAlpha <= 255),
          'cellSelectionAlpha must be between 0 and 255',

@@ -33,8 +33,9 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
       home: Center(
-        child: SizedBox(
+        child: Container(
           width: 600,
+          padding: const EdgeInsets.all(32),
           child: MultiSelectionCalendar(
             initialSelections: [
               CalendarSelection(

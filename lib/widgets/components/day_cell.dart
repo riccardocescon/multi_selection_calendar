@@ -114,26 +114,38 @@ class _DayCell extends StatelessWidget {
             Radius.circular(dayDecoration.selectedRadius),
           );
         } else {
-          // Start of selection
-          borderRadius = BorderRadius.only(
-            topLeft: Radius.circular(dayDecoration.selectedRadius),
-            bottomLeft: Radius.circular(dayDecoration.selectedRadius),
+          final backgroundBorder = BorderRadius.only(
+            topLeft: Radius.circular(9999),
+            bottomLeft: Radius.circular(9999),
+          );
+          borderRadius = BorderRadius.all(Radius.circular(9999));
+          decorations.add(
+            BoxDecoration(
+              color: selectionColor.withAlpha(dayDecoration.cellSelectionAlpha),
+              borderRadius: backgroundBorder,
+            ),
           );
         }
       } else if (date.isSameDate(selection.end)) {
         selectionColor = selection.color;
 
-        // End of selection
-        borderRadius = BorderRadius.only(
-          topRight: Radius.circular(dayDecoration.selectedRadius),
-          bottomRight: Radius.circular(dayDecoration.selectedRadius),
+        final backgroundBorder = BorderRadius.only(
+          topRight: Radius.circular(9999),
+          bottomRight: Radius.circular(9999),
+        );
+        borderRadius = BorderRadius.all(Radius.circular(9999));
+        decorations.add(
+          BoxDecoration(
+            color: selectionColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: backgroundBorder,
+          ),
         );
       } else if (date.isAfter(selection.start) &&
           date.isBefore(selection.end)) {
         selectionColor = selection.color.withAlpha(
           dayDecoration.cellSelectionAlpha,
         );
-        // No border radius for middle days
+
         borderRadius = null;
       }
 

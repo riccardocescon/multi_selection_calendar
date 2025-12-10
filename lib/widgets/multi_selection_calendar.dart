@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_selection_calendar/entities/calendar_animation_settings.dart';
 import 'package:multi_selection_calendar/entities/calendar_decorations.dart';
+import 'package:multi_selection_calendar/entities/calendar_picker_decoration.dart';
+import 'package:multi_selection_calendar/entities/header_decoration.dart';
 import 'package:multi_selection_calendar/entities/month.dart';
 import 'package:multi_selection_calendar/enums/enums.dart';
 import 'package:multi_selection_calendar/notifiers/selection_notifier.dart';
@@ -9,6 +11,8 @@ import 'package:multi_selection_calendar/extensions/extensions.dart';
 
 part 'components/month_calendar.dart';
 part 'components/day_cell.dart';
+part 'components/header.dart';
+part 'components/pick_element.dart';
 
 class MultiSelectionCalendar extends StatefulWidget {
   const MultiSelectionCalendar({
@@ -17,6 +21,8 @@ class MultiSelectionCalendar extends StatefulWidget {
     this.initialSelections = const [],
     this.initMonthIndex,
     this.dayDecoration,
+    this.pickerDecoration,
+    this.headerDecoration,
     this.onSelectionAdded,
     this.minYear,
     this.maxYear,
@@ -47,6 +53,8 @@ class MultiSelectionCalendar extends StatefulWidget {
     CalendarSelection? initialSelection,
     int? initMonthIndex,
     DayDecoration? dayDecoration,
+    CalendarPickerDecoration? pickerDecoration,
+    HeaderDecoration? headerDecoration,
     void Function(CalendarSelection selection)? onSelectionAdded,
     int? minYear,
     int? maxYear,
@@ -60,6 +68,8 @@ class MultiSelectionCalendar extends StatefulWidget {
       VoidCallback? onLoadNextMonth,
       VoidCallback? onLoadPrevMonth,
       void Function(int year) onLoadNewYear,
+      VoidCallback? onChangeMonth,
+      VoidCallback? onChangeYear,
     )?
     headerBuilder,
   }) {
@@ -68,6 +78,8 @@ class MultiSelectionCalendar extends StatefulWidget {
       initialSelections: initialSelection != null ? [initialSelection] : [],
       initMonthIndex: initMonthIndex,
       dayDecoration: dayDecoration,
+      pickerDecoration: pickerDecoration,
+      headerDecoration: headerDecoration,
       onSelectionAdded: onSelectionAdded,
       minYear: minYear,
       maxYear: maxYear,
@@ -95,6 +107,12 @@ class MultiSelectionCalendar extends StatefulWidget {
   /// Decoration for each day cell in the calendar.
   final DayDecoration? dayDecoration;
 
+  /// Decoration for the month picker.
+  final CalendarPickerDecoration? pickerDecoration;
+
+  /// Decoration for the header of the calendar.
+  final HeaderDecoration? headerDecoration;
+
   /// Callback when a new selection is added.
   final void Function(CalendarSelection selection)? onSelectionAdded;
 
@@ -110,6 +128,7 @@ class MultiSelectionCalendar extends StatefulWidget {
   /// Selection settings for the calendar.
   final SelectionSettings? selectionSettings;
 
+  /// Animation settings for month transitions.
   final CalendarAnimationSettings? animationSettings;
 
   /// Custom builder for day cells.
@@ -130,6 +149,8 @@ class MultiSelectionCalendar extends StatefulWidget {
     VoidCallback? onLoadNextMonth,
     VoidCallback? onLoadPrevMonth,
     void Function(int year) onLoadNewYear,
+    VoidCallback? onChangeMonth,
+    VoidCallback? onChangeYear,
   )?
   headerBuilder;
 
@@ -144,6 +165,8 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
   late int minYear = widget.minYear ?? DateTime.now().year - 5;
   late int maxYear = widget.maxYear ?? DateTime.now().year + 5;
   late int selectedYear = widget.initYear ?? DateTime.now().year;
+
+  _PageView _currentPageView = _PageView.days;
 
   List<Month> get months => List.generate(12, (month) {
     final daysInMonth = DateTime(selectedYear, month + 2, 0).day;
@@ -196,31 +219,98 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
       }
     }
 
+    final calendarDecoration =
+        widget.pickerDecoration ?? CalendarPickerDecoration();
+
     return Material(
       color: Colors.transparent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 16,
         children: [
-          widget.headerBuilder?.call(
-                selectedYear,
-                monthIndex,
-                enableNextMonth ? _loadNextMonth : null,
-                enablePrevMonth ? _loadPrevMonth : null,
-                _loadNewYear,
-              ) ??
-              _header(),
-          _MonthCalendar(
-            selectionNotifier: _selectionNotifier,
-            month: months[monthIndex],
-            dayDecoration: widget.dayDecoration ?? DayDecoration(),
-            monthIndex: monthIndex,
-            dayBuilder: widget.dayBuilder,
-            year: selectedYear,
-            prevMonth: prevMonth,
-            nextMonth: nextMonth,
-            animationSettings:
-                widget.animationSettings ?? CalendarAnimationSettings(),
+          _header(),
+
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              _MonthCalendar(
+                selectionNotifier: _selectionNotifier,
+                month: months[monthIndex],
+                dayDecoration: widget.dayDecoration ?? DayDecoration(),
+                monthIndex: monthIndex,
+                dayBuilder: widget.dayBuilder,
+                year: selectedYear,
+                prevMonth: prevMonth,
+                nextMonth: nextMonth,
+                animationSettings:
+                    widget.animationSettings ?? CalendarAnimationSettings(),
+              ),
+
+              if (_currentPageView == _PageView.months)
+                Positioned.fill(
+                  child: _PickElement(
+                    itemCount: 12,
+                    itemBuilder: (index) {
+                      final isSelected = index == monthIndex;
+                      return Text(
+                        DateFormat.MMMM().format(DateTime(2000, index + 1)),
+                        style:
+                            calendarDecoration.textStyle ??
+                            Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: isSelected ? Colors.white : null,
+                            ),
+                      );
+                    },
+                    elementIndex: monthIndex,
+                    decoration:
+                        widget.pickerDecoration ?? CalendarPickerDecoration(),
+                    onElementPicked: (elementIndex) {
+                      setState(() {
+                        monthIndex = elementIndex;
+                        _currentPageView = _PageView.days;
+                      });
+                    },
+                  ),
+                ),
+
+              if (_currentPageView == _PageView.years)
+                Positioned.fill(
+                  child: _PickElement(
+                    itemCount: maxYear - minYear + 20,
+                    itemBuilder: (index) {
+                      final year = minYear + index;
+                      final isSelected = year == selectedYear;
+                      final isInRange = year >= minYear && year <= maxYear;
+
+                      final textStyle =
+                          calendarDecoration.textStyle ??
+                          Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: isSelected ? Colors.white : null,
+                          );
+                      return Text(
+                        DateFormat.y().format(DateTime(year, 1)),
+                        style: textStyle?.copyWith(
+                          color: isInRange
+                              ? textStyle.color
+                              : textStyle.color?.withAlpha(80),
+                        ),
+                      );
+                    },
+                    enabled: (index) =>
+                        (minYear + index) >= minYear &&
+                        (minYear + index) <= maxYear,
+                    elementIndex: selectedYear - minYear,
+                    decoration:
+                        widget.pickerDecoration ?? CalendarPickerDecoration(),
+                    onElementPicked: (elementIndex) {
+                      setState(() {
+                        selectedYear = minYear + elementIndex;
+                        _currentPageView = _PageView.days;
+                      });
+                    },
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -228,51 +318,31 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
   }
 
   Widget _header() {
-    return Row(
-      children: [
-        Expanded(
-          child: Row(
-            spacing: 16,
-            children: [
-              Text(
-                DateFormat.MMMM().format(
-                  DateTime(DateTime.now().year, monthIndex + 1),
-                ),
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              DropdownButton(
-                underline: const SizedBox.shrink(),
-                items: List.generate(maxYear - minYear, (relativeYear) {
-                  final year = minYear + relativeYear;
-                  return DropdownMenuItem(
-                    value: year,
-                    child: Text(year.toString()),
-                  );
-                }),
-                onChanged: (newYear) {
-                  if (newYear == null) return;
-
-                  _loadNewYear(newYear);
-                },
-                value: selectedYear,
-              ),
-            ],
-          ),
-        ),
-        Row(
-          children: [
-            IconButton(
-              onPressed: enablePrevMonth ? _loadPrevMonth : null,
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            ),
-            IconButton(
-              onPressed: enableNextMonth ? _loadNextMonth : null,
-              icon: const Icon(Icons.arrow_forward_ios_rounded),
-            ),
-          ],
-        ),
-      ],
+    final customHeader = widget.headerBuilder?.call(
+      selectedYear,
+      monthIndex,
+      enableNextMonth ? _loadNextMonth : null,
+      enablePrevMonth ? _loadPrevMonth : null,
+      _loadNewYear,
+      _changeMonth,
+      _changeYear,
     );
+
+    return customHeader ??
+        _Header(
+          selectedYear: selectedYear,
+          monthIndex: monthIndex,
+          minYear: minYear,
+          maxYear: maxYear,
+          enablePrevMonth: enablePrevMonth,
+          enableNextMonth: enableNextMonth,
+          loadPrevMonth: _loadPrevMonth,
+          loadNextMonth: _loadNextMonth,
+          loadNewYear: _loadNewYear,
+          onChangeMonth: _changeMonth,
+          onChangeYear: _changeYear,
+          decoration: widget.headerDecoration ?? HeaderDecoration(),
+        );
   }
 
   void _loadPrevMonth() {
@@ -312,4 +382,32 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
       selectedYear = year;
     });
   }
+
+  void _changeMonth() {
+    if (_currentPageView == _PageView.months) {
+      setState(() {
+        _currentPageView = _PageView.days;
+      });
+      return;
+    }
+
+    setState(() {
+      _currentPageView = _PageView.months;
+    });
+  }
+
+  void _changeYear() {
+    if (_currentPageView == _PageView.years) {
+      setState(() {
+        _currentPageView = _PageView.days;
+      });
+      return;
+    }
+
+    setState(() {
+      _currentPageView = _PageView.years;
+    });
+  }
 }
+
+enum _PageView { days, months, years }
