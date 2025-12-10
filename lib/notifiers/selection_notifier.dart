@@ -14,20 +14,39 @@ class CalendarSelection {
   });
 }
 
+class SelectionSettings {
+  /// Will trigger [selectionConflictMode] when the max selection count is reached.
+  final int maxSelectionCount;
+
+  /// Defines how to handle conflicts when the max selection count is reached.
+  /// Defaults to [SelectionConflictMode.block].
+  /// - block: New selections that would exceed the max count are ignored.
+  /// - fifo: The oldest selection is removed to make room for the new selection.
+  final SelectionConflictMode selectionConflictMode;
+
+  const SelectionSettings({
+    this.maxSelectionCount = 1,
+    this.selectionConflictMode = SelectionConflictMode.block,
+  });
+}
+
 class SelectionNotifier extends ChangeNotifier {
   late final _selections = <CalendarSelection>[];
   DateTime? _lastSelectedDay;
   final ConflictMode conflictMode;
   late Color _nextColor;
   final void Function(CalendarSelection selection)? onSelectionAdded;
+  late final SelectionSettings? _selectionSettings;
 
   SelectionNotifier({
     required this.conflictMode,
     this.onSelectionAdded,
     List<CalendarSelection> selections = const [],
+    SelectionSettings? selectionSettings,
   }) {
     _selections.addAll(selections);
     _nextColor = Colors.blue;
+    _selectionSettings = selectionSettings;
     notifyListeners();
   }
 
@@ -43,6 +62,23 @@ class SelectionNotifier extends ChangeNotifier {
 
   void selectDay(DateTime day) {
     if (_lastSelectedDay == null) {
+      final maxSizeReached =
+          _selectionSettings != null &&
+          _selections.length >= _selectionSettings.maxSelectionCount;
+
+      if (maxSizeReached) {
+        // Max selection count reached, handle according to conflict mode
+        if (_selectionSettings.selectionConflictMode ==
+            SelectionConflictMode.block) {
+          return;
+        }
+
+        if (_selectionSettings.selectionConflictMode ==
+            SelectionConflictMode.fifo) {
+          _selections.removeAt(0);
+        }
+      }
+
       _lastSelectedDay = day;
       if (conflictMode == ConflictMode.override) {
         _selections.removeWhere((selection) => _isDateinRange(day, selection));

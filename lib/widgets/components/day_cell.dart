@@ -1,4 +1,4 @@
-part of 'multi_selection_calendar.dart';
+part of '../multi_selection_calendar.dart';
 
 class _DayCell extends StatelessWidget {
   const _DayCell({

@@ -94,6 +94,65 @@ void main() {
 
         selectionNotifier.dispose();
       });
+
+      test("Settings Block", () {
+        final selectionNotifier = SelectionNotifier(
+          conflictMode: ConflictMode.override,
+          selectionSettings: SelectionSettings(
+            maxSelectionCount: 1,
+            selectionConflictMode: SelectionConflictMode.block,
+          ),
+        );
+
+        final date1 = DateTime(2024, 6, 10);
+        final date2 = DateTime(2024, 6, 15);
+
+        selectionNotifier.selectDay(date1);
+        selectionNotifier.selectDay(date2);
+
+        expect(selectionNotifier.getSelections(date1).length, 1);
+        expect(selectionNotifier.getSelections(date2).length, 1);
+
+        // This selection should be blocked
+        final date3 = DateTime(2024, 6, 20);
+        selectionNotifier.selectDay(date3);
+
+        expect(selectionNotifier.getSelections(date3).length, 0);
+        expect(selectionNotifier.lastSelectedDay, isNull);
+        expect(selectionNotifier.getSelections(date1).length, 1);
+        expect(selectionNotifier.getSelections(date2).length, 1);
+
+        selectionNotifier.dispose();
+      });
+
+      test("Settings Fifo", () {
+        final selectionNotifier = SelectionNotifier(
+          conflictMode: ConflictMode.override,
+          selectionSettings: SelectionSettings(
+            maxSelectionCount: 1,
+            selectionConflictMode: SelectionConflictMode.fifo,
+          ),
+        );
+
+        final date1 = DateTime(2024, 6, 10);
+        final date2 = DateTime(2024, 6, 15);
+
+        selectionNotifier.selectDay(date1);
+        selectionNotifier.selectDay(date2);
+
+        expect(selectionNotifier.getSelections(date1).length, 1);
+        expect(selectionNotifier.getSelections(date2).length, 1);
+
+        final date3 = DateTime(2024, 6, 20);
+        selectionNotifier.selectDay(date3);
+
+        expect(selectionNotifier.getSelections(date1).length, 0);
+        expect(selectionNotifier.getSelections(date2).length, 0);
+        expect(selectionNotifier.getSelections(date3).length, 0);
+        expect(selectionNotifier.lastSelectedDay, date3);
+
+        selectionNotifier.dispose();
+      });
     });
 
     group("Override", () {
