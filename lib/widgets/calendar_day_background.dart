@@ -27,10 +27,13 @@ class CalendarDayBackground extends StatelessWidget {
     );
   }
 
-  factory CalendarDayBackground.selected({required Widget child}) {
+  factory CalendarDayBackground.selected({
+    required List<CalendarSelection> selections,
+    required Widget child,
+  }) {
     return CalendarDayBackground._(
       date: DateTime.now(),
-      selections: [],
+      selections: selections,
       dayDecoration: const DayDecoration(),
       isSelected: true,
       child: child,
@@ -65,6 +68,11 @@ class CalendarDayBackground extends StatelessWidget {
     if (isSelected) {
       // Get the selected day decoration
       return [
+        ...selections.map(
+          (selection) => BoxDecoration(
+            color: selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
+          ),
+        ),
         BoxDecoration(
           color: dayDecoration.selectedDayBackgroundColor ?? Colors.blue,
           borderRadius: BorderRadius.all(Radius.circular(9999)),

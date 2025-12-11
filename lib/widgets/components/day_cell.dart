@@ -65,15 +65,18 @@ class _DayCell extends StatelessWidget {
   }
 
   Widget _cell(BuildContext context) {
+    final selections = calendarController?.getSelections(date) ?? [];
+
     if (isDaySelected) {
       return CalendarDayBackground.selected(
+        selections: selections,
         child: _text(context, calendarController != null),
       );
     }
 
     return CalendarDayBackground.day(
       date: date,
-      selections: calendarController?.getSelections(date) ?? [],
+      selections: selections,
       dayDecoration: dayDecoration,
       child: _text(context, calendarController != null),
     );
