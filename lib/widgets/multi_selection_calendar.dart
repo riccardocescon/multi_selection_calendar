@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:multi_selection_calendar/controller/calendar_controller.dart';
 import 'package:multi_selection_calendar/entities/calendar_animation_settings.dart';
 import 'package:multi_selection_calendar/widgets/calendar_day_background.dart';
 import 'package:multi_selection_calendar/entities/calendar_decorations.dart';
 import 'package:multi_selection_calendar/entities/calendar_picker_decoration.dart';
 import 'package:multi_selection_calendar/entities/header_decoration.dart';
 import 'package:multi_selection_calendar/entities/month.dart';
-import 'package:multi_selection_calendar/enums/enums.dart';
-import 'package:multi_selection_calendar/notifiers/selection_notifier.dart';
 import 'package:multi_selection_calendar/extensions/extensions.dart';
 
 part 'components/month_calendar.dart';
@@ -18,19 +17,17 @@ part 'components/pick_element.dart';
 class MultiSelectionCalendar extends StatefulWidget {
   const MultiSelectionCalendar({
     super.key,
-    this.conflictMode = ConflictMode.override,
-    this.initialSelections = const [],
+    required this.controller,
     this.initMonthIndex,
     this.dayDecoration,
     this.pickerDecoration,
     this.headerDecoration,
-    this.onSelectionAdded,
     this.minYear,
     this.maxYear,
     this.initYear,
     this.animationSettings,
     this.dayBuilder,
-    this.selectionSettings,
+    this.textStyleDayBuilder,
     this.headerBuilder,
   }) : assert(
          initMonthIndex == null ||
@@ -48,62 +45,8 @@ class MultiSelectionCalendar extends StatefulWidget {
          'initYear must be between minYear and maxYear',
        );
 
-  /// Creates a [MultiSelectionCalendar] that allows only a single selection.
-  factory MultiSelectionCalendar.single({
-    Key? key,
-    CalendarSelection? initialSelection,
-    int? initMonthIndex,
-    DayDecoration? dayDecoration,
-    CalendarPickerDecoration? pickerDecoration,
-    HeaderDecoration? headerDecoration,
-    void Function(CalendarSelection selection)? onSelectionAdded,
-    int? minYear,
-    int? maxYear,
-    int? initYear,
-    CalendarAnimationSettings? animationSettings,
-    Widget? Function(
-      DateTime date,
-      List<CalendarSelection> daySelections,
-      bool isSelected,
-    )?
-    dayBuilder,
-    Widget? Function(
-      int selectedYear,
-      int selectedMonthIndex,
-      VoidCallback? onLoadNextMonth,
-      VoidCallback? onLoadPrevMonth,
-      void Function(int year) onLoadNewYear,
-      VoidCallback? onChangeMonth,
-      VoidCallback? onChangeYear,
-    )?
-    headerBuilder,
-  }) {
-    return MultiSelectionCalendar(
-      conflictMode: ConflictMode.override,
-      initialSelections: initialSelection != null ? [initialSelection] : [],
-      initMonthIndex: initMonthIndex,
-      dayDecoration: dayDecoration,
-      pickerDecoration: pickerDecoration,
-      headerDecoration: headerDecoration,
-      onSelectionAdded: onSelectionAdded,
-      minYear: minYear,
-      maxYear: maxYear,
-      initYear: initYear,
-      animationSettings: animationSettings,
-      dayBuilder: dayBuilder,
-      headerBuilder: headerBuilder,
-      selectionSettings: SelectionSettings(
-        maxSelectionCount: 1,
-        selectionConflictMode: SelectionConflictMode.fifo,
-      ),
-    );
-  }
-
-  /// Defines how to handle conflicts when selecting date ranges.
-  final ConflictMode conflictMode;
-
-  /// Initial selections to be applied to the calendar.
-  final List<CalendarSelection> initialSelections;
+  /// Controller to manage calendar selections and state.
+  final CalendarController controller;
 
   /// Initial month index to display (0 for January, 11 for December).
   /// If null, defaults to the current month.
@@ -118,9 +61,6 @@ class MultiSelectionCalendar extends StatefulWidget {
   /// Decoration for the header of the calendar.
   final HeaderDecoration? headerDecoration;
 
-  /// Callback when a new selection is added.
-  final void Function(CalendarSelection selection)? onSelectionAdded;
-
   /// Minimum year selectable in the calendar.
   final int? minYear;
 
@@ -130,21 +70,31 @@ class MultiSelectionCalendar extends StatefulWidget {
   /// Initial year to display in the calendar.
   final int? initYear;
 
-  /// Selection settings for the calendar.
-  final SelectionSettings? selectionSettings;
-
   /// Animation settings for month transitions.
   final CalendarAnimationSettings? animationSettings;
 
   /// Custom builder for day cells.
-  /// date is the date of the cell.
-  /// daySelections is the list of selections that include this date.
+  /// [date] is the date of the cell.
+  /// [daySelections] is the list of selections that include this date.
+  /// [isSelected] indicates if the day is currently selected.
   final Widget? Function(
     DateTime date,
     List<CalendarSelection> daySelections,
     bool isSelected,
   )?
   dayBuilder;
+
+  /// Custom text style builder for day cells.
+  /// This will keep the default day cell layout but allow customizing the text style.
+  /// [date] is the date of the cell.
+  /// [daySelections] is the list of selections that include this date.
+  /// [enabled] indicates if the day cell is part of the selected month or an offset day.
+  final TextStyle? Function(
+    DateTime date,
+    List<CalendarSelection> daySelections,
+    bool enabled,
+  )?
+  textStyleDayBuilder;
 
   /// Custom header builder for the calendar.
   /// [onLoadNextMonth] is called when the user wants to load the next month,
@@ -168,8 +118,6 @@ class MultiSelectionCalendar extends StatefulWidget {
 }
 
 class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
-  late final SelectionNotifier _selectionNotifier;
-
   late int monthIndex;
   late int minYear = widget.minYear ?? DateTime.now().year - 5;
   late int maxYear = widget.maxYear ?? DateTime.now().year + 5;
@@ -187,20 +135,8 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
 
   @override
   void initState() {
-    _selectionNotifier = SelectionNotifier(
-      conflictMode: widget.conflictMode,
-      selections: widget.initialSelections,
-      onSelectionAdded: widget.onSelectionAdded,
-      selectionSettings: widget.selectionSettings,
-    );
     monthIndex = widget.initMonthIndex ?? DateTime.now().month - 1;
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _selectionNotifier.dispose();
-    super.dispose();
   }
 
   @override
@@ -243,11 +179,12 @@ class _MultiSelectionCalendarState extends State<MultiSelectionCalendar> {
             alignment: Alignment.center,
             children: [
               _MonthCalendar(
-                selectionNotifier: _selectionNotifier,
+                calendarController: widget.controller,
                 month: months[monthIndex],
                 dayDecoration: widget.dayDecoration ?? DayDecoration(),
                 monthIndex: monthIndex,
                 dayBuilder: widget.dayBuilder,
+                textStyleDayBuilder: widget.textStyleDayBuilder,
                 year: selectedYear,
                 prevMonth: prevMonth,
                 nextMonth: nextMonth,

@@ -2,6 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:multi_selection_calendar/enums/enums.dart';
 import 'package:multi_selection_calendar/extensions/extensions.dart';
 
+class CalendarController extends ChangeNotifier {
+  late _SelectionHandler _selectionHandler;
+
+  CalendarController({
+    required ConflictMode conflictMode,
+    void Function(CalendarSelection selection)? onSelectionAdded,
+    List<CalendarSelection> initialSelections = const [],
+    SelectionSettings? selectionSettings,
+    Color initColor = Colors.blue,
+  }) {
+    _selectionHandler = _SelectionHandler(
+      conflictMode: conflictMode,
+      initialColor: initColor,
+      onSelectionAdded: onSelectionAdded,
+      selections: initialSelections,
+      selectionSettings: selectionSettings,
+    );
+    notifyListeners();
+  }
+
+  /// All the selections made in the calendar.
+  /// NOTE: This list is unmodifiable.
+  List<CalendarSelection> get selections => _selectionHandler.allSelections;
+
+  /// The color that will be used for the next selection.
+  Color get nextColor => _selectionHandler.nextColor;
+
+  /// Set the color for the next selection.
+  void setNextColor(Color color) => _selectionHandler.setSelectionColor(color);
+
+  /// The last selected day in the calendar.
+  /// If null, no day is currently selected.
+  DateTime? get lastSelectedDay => _selectionHandler.lastSelectedDay;
+
+  /// Select a day in the calendar.
+  void selectDay(DateTime date) {
+    _selectionHandler.selectDay(date);
+    notifyListeners();
+  }
+
+  /// Remove a selection from the calendar.
+  void removeSelection(CalendarSelection selection) {
+    _selectionHandler.removeSelection(selection);
+    notifyListeners();
+  }
+
+  /// Get all selections that include the given [date].
+  List<CalendarSelection> getSelections(DateTime date) =>
+      _selectionHandler.getSelections(date);
+
+  /// Clear all selections in the calendar.
+  void clearSelections() {
+    _selectionHandler.clearSelections();
+    notifyListeners();
+  }
+}
+
 class CalendarSelection {
   final DateTime start;
   final DateTime end;
@@ -30,7 +87,7 @@ class SelectionSettings {
   });
 }
 
-class SelectionNotifier extends ChangeNotifier {
+class _SelectionHandler {
   late final _selections = <CalendarSelection>[];
   DateTime? _lastSelectedDay;
   final ConflictMode conflictMode;
@@ -38,16 +95,19 @@ class SelectionNotifier extends ChangeNotifier {
   final void Function(CalendarSelection selection)? onSelectionAdded;
   late final SelectionSettings? _selectionSettings;
 
-  SelectionNotifier({
+  List<CalendarSelection> get allSelections => List.unmodifiable(_selections);
+  Color get nextColor => _nextColor;
+
+  _SelectionHandler({
     required this.conflictMode,
+    required Color initialColor,
     this.onSelectionAdded,
     List<CalendarSelection> selections = const [],
     SelectionSettings? selectionSettings,
   }) {
     _selections.addAll(selections);
-    _nextColor = Colors.blue;
+    _nextColor = initialColor;
     _selectionSettings = selectionSettings;
-    notifyListeners();
   }
 
   // Utils
@@ -146,19 +206,15 @@ class SelectionNotifier extends ChangeNotifier {
       _lastSelectedDay = null;
       onSelectionAdded?.call(calendarSelection);
     }
-
-    notifyListeners();
   }
 
   void removeSelection(CalendarSelection selection) {
     _selections.remove(selection);
-    notifyListeners();
   }
 
   void clearSelections() {
     _selections.clear();
     _lastSelectedDay = null;
-    notifyListeners();
   }
 
   // Getters

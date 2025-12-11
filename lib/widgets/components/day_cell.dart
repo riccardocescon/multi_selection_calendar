@@ -4,8 +4,9 @@ class _DayCell extends StatelessWidget {
   const _DayCell({
     required this.date,
     required this.dayDecoration,
-    required this.selectionNotifier,
+    required this.calendarController,
     this.dayBuilder,
+    this.textStyleDayBuilder,
   });
 
   factory _DayCell.disabled({
@@ -15,30 +16,36 @@ class _DayCell extends StatelessWidget {
     return _DayCell(
       date: date,
       dayDecoration: dayDecoration,
-      selectionNotifier: null,
+      calendarController: null,
     );
   }
 
   final DateTime date;
   final DayDecoration dayDecoration;
-  final SelectionNotifier? selectionNotifier;
+  final CalendarController? calendarController;
   final Widget? Function(
     DateTime date,
     List<CalendarSelection> daySelections,
     bool isSelected,
   )?
   dayBuilder;
+  final TextStyle? Function(
+    DateTime date,
+    List<CalendarSelection> daySelections,
+    bool enabled,
+  )?
+  textStyleDayBuilder;
 
   bool get isDaySelected =>
-      selectionNotifier?.lastSelectedDay?.isSameDate(date) ?? false;
+      calendarController?.lastSelectedDay?.isSameDate(date) ?? false;
 
   @override
   Widget build(BuildContext context) {
-    if (selectionNotifier == null) {
+    if (calendarController == null) {
       return _cell(context);
     }
     return ListenableBuilder(
-      listenable: selectionNotifier!,
+      listenable: calendarController!,
       builder: (context, child) => _selectableCell(context),
     );
   }
@@ -46,12 +53,12 @@ class _DayCell extends StatelessWidget {
   Widget _selectableCell(BuildContext context) {
     final overrideDay = dayBuilder?.call(
       date,
-      selectionNotifier!.getSelections(date),
+      calendarController!.getSelections(date),
       isDaySelected,
     );
     return GestureDetector(
       onTap: () {
-        selectionNotifier!.selectDay(date);
+        calendarController!.selectDay(date);
       },
       child: overrideDay ?? _cell(context),
     );
@@ -60,15 +67,15 @@ class _DayCell extends StatelessWidget {
   Widget _cell(BuildContext context) {
     if (isDaySelected) {
       return CalendarDayBackground.selected(
-        child: _text(context, selectionNotifier != null),
+        child: _text(context, calendarController != null),
       );
     }
 
     return CalendarDayBackground.day(
       date: date,
-      selections: selectionNotifier?.getSelections(date) ?? [],
+      selections: calendarController?.getSelections(date) ?? [],
       dayDecoration: dayDecoration,
-      child: _text(context, selectionNotifier != null),
+      child: _text(context, calendarController != null),
     );
   }
 
@@ -76,6 +83,11 @@ class _DayCell extends StatelessWidget {
     return Text(
       '${date.day}',
       style:
+          textStyleDayBuilder?.call(
+            date,
+            calendarController?.getSelections(date) ?? [],
+            enabled,
+          ) ??
           (dayDecoration.dayTextStyle ?? Theme.of(context).textTheme.bodyLarge)
               ?.copyWith(
                 color: enabled

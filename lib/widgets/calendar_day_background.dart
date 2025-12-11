@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:multi_selection_calendar/controller/calendar_controller.dart';
 import 'package:multi_selection_calendar/entities/calendar_decorations.dart';
 import 'package:multi_selection_calendar/extensions/extensions.dart';
-import 'package:multi_selection_calendar/notifiers/selection_notifier.dart';
 
 class CalendarDayBackground extends StatelessWidget {
   const CalendarDayBackground._({

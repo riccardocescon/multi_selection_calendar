@@ -8,9 +8,10 @@ class _MonthCalendar extends StatelessWidget {
     required this.prevMonth,
     required this.nextMonth,
     required this.dayDecoration,
-    required this.selectionNotifier,
+    required this.calendarController,
     required this.animationSettings,
     this.dayBuilder,
+    this.textStyleDayBuilder,
   });
 
   final int monthIndex;
@@ -19,14 +20,20 @@ class _MonthCalendar extends StatelessWidget {
   final Month? nextMonth;
   final Month month;
   final DayDecoration dayDecoration;
-  final SelectionNotifier selectionNotifier;
+  final CalendarController calendarController;
+  final CalendarAnimationSettings animationSettings;
   final Widget? Function(
     DateTime date,
     List<CalendarSelection> daySelections,
     bool isSelected,
   )?
   dayBuilder;
-  final CalendarAnimationSettings animationSettings;
+  final TextStyle? Function(
+    DateTime date,
+    List<CalendarSelection> daySelections,
+    bool enabled,
+  )?
+  textStyleDayBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -130,8 +137,9 @@ class _MonthCalendar extends StatelessWidget {
         child: _DayCell(
           date: DateTime(year, monthIndex + 1, day),
           dayDecoration: dayDecoration,
-          selectionNotifier: selectionNotifier,
+          calendarController: calendarController,
           dayBuilder: dayBuilder,
+          textStyleDayBuilder: textStyleDayBuilder,
         ),
       );
     });
