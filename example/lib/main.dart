@@ -16,7 +16,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final CalendarController _calendarController = CalendarController(
-    conflictMode: ConflictMode.override,
+    conflictMode: ConflictMode.overlap,
     initialSelections: [
       CalendarSelection(
         start: DateTime.now(),

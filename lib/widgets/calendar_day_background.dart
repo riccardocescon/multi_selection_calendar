@@ -63,6 +63,7 @@ class CalendarDayBackground extends StatelessWidget {
 
   List<BoxDecoration> get _buildSelectionDecoration {
     if (isSelected) {
+      // Get the selected day decoration
       return [
         BoxDecoration(
           color: dayDecoration.selectedDayBackgroundColor ?? Colors.blue,
@@ -79,63 +80,77 @@ class CalendarDayBackground extends StatelessWidget {
       ];
     }
 
-    List<BoxDecoration> decorations = [];
+    List<BoxDecoration> backgroundDecorations = [];
+    List<BoxDecoration> circleDecorations = [];
 
     for (final selection in selections) {
-      Color? selectionColor;
-      BorderRadius? borderRadius;
+      final startMatch = date.isSameDate(selection.start);
+      final endMatch = date.isSameDate(selection.end);
+      final baseColor = selection.color;
 
-      if (date.isSameDate(selection.start)) {
-        selectionColor = selection.color;
-
-        if (date.isSameDate(selection.end)) {
-          // Single day selection
-          borderRadius = BorderRadius.all(
-            Radius.circular(dayDecoration.selectedRadius),
-          );
-        } else {
-          final backgroundBorder = BorderRadius.only(
-            topLeft: Radius.circular(9999),
-            bottomLeft: Radius.circular(9999),
-          );
-          borderRadius = BorderRadius.all(Radius.circular(9999));
-          decorations.add(
-            BoxDecoration(
-              color: selectionColor.withAlpha(dayDecoration.cellSelectionAlpha),
-              borderRadius: backgroundBorder,
-            ),
-          );
-        }
-      } else if (date.isSameDate(selection.end)) {
-        selectionColor = selection.color;
-
-        final backgroundBorder = BorderRadius.only(
-          topRight: Radius.circular(9999),
-          bottomRight: Radius.circular(9999),
-        );
-        borderRadius = BorderRadius.all(Radius.circular(9999));
-        decorations.add(
+      if (startMatch && endMatch) {
+        backgroundDecorations.add(
           BoxDecoration(
-            color: selectionColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            borderRadius: backgroundBorder,
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.all(Radius.circular(9999)),
+          ),
+        );
+
+        circleDecorations.add(
+          BoxDecoration(
+            color: baseColor,
+            borderRadius: BorderRadius.all(
+              Radius.circular(dayDecoration.selectedRadius),
+            ),
+          ),
+        );
+      } else if (startMatch) {
+        // START RANGE
+        backgroundDecorations.add(
+          BoxDecoration(
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(9999),
+              bottomLeft: Radius.circular(9999),
+            ),
+          ),
+        );
+
+        circleDecorations.add(
+          BoxDecoration(
+            color: baseColor,
+            borderRadius: BorderRadius.all(Radius.circular(9999)),
+          ),
+        );
+      } else if (endMatch) {
+        // END RANGE
+        backgroundDecorations.add(
+          BoxDecoration(
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(9999),
+              bottomRight: Radius.circular(9999),
+            ),
+          ),
+        );
+
+        circleDecorations.add(
+          BoxDecoration(
+            color: baseColor,
+            borderRadius: BorderRadius.all(Radius.circular(9999)),
           ),
         );
       } else if (date.isAfter(selection.start) &&
           date.isBefore(selection.end)) {
-        selectionColor = selection.color.withAlpha(
-          dayDecoration.cellSelectionAlpha,
-        );
-
-        borderRadius = null;
-      }
-
-      if (selectionColor != null) {
-        decorations.add(
-          BoxDecoration(color: selectionColor, borderRadius: borderRadius),
+        // MIDDLE DAYS
+        backgroundDecorations.add(
+          BoxDecoration(
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+          ),
         );
       }
     }
 
-    return decorations;
+    return [...backgroundDecorations, ...circleDecorations];
   }
 }
