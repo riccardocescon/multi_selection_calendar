@@ -71,6 +71,7 @@ class _MyAppState extends State<MyApp> {
                 // dayBuilder: (date, daySelections, isSelected) {
                 //   if (isSelected) {
                 //     return CalendarDayBackground.selected(
+                //       selections: daySelections,
                 //       child: Text(
                 //         '${date.day}',
                 //         style: const TextStyle(
@@ -90,6 +91,9 @@ class _MyAppState extends State<MyApp> {
                 //   return CalendarDayBackground.day(
                 //     date: date,
                 //     selections: daySelections,
+                //     dayDecoration: DayDecoration(
+                //       selectedDayBackgroundColor: Colors.purple,
+                //     ),
                 //     child: Text(
                 //       '${date.day}',
                 //       style: const TextStyle(

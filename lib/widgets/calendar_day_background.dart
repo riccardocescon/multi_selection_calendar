@@ -126,8 +126,10 @@ class CalendarDayBackground extends StatelessWidget {
 
         circleDecorations.add(
           BoxDecoration(
-            color: baseColor,
-            borderRadius: BorderRadius.all(Radius.circular(9999)),
+            color: dayDecoration.selectedDayBackgroundColor ?? baseColor,
+            borderRadius: BorderRadius.all(
+              Radius.circular(dayDecoration.selectedRadius),
+            ),
           ),
         );
       } else if (endMatch) {
@@ -144,8 +146,10 @@ class CalendarDayBackground extends StatelessWidget {
 
         circleDecorations.add(
           BoxDecoration(
-            color: baseColor,
-            borderRadius: BorderRadius.all(Radius.circular(9999)),
+            color: dayDecoration.selectedDayBackgroundColor ?? baseColor,
+            borderRadius: BorderRadius.all(
+              Radius.circular(dayDecoration.selectedRadius),
+            ),
           ),
         );
       } else if (date.isAfter(selection.start) &&
