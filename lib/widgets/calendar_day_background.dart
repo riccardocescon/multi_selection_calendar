@@ -9,7 +9,7 @@ class CalendarDayBackground extends StatelessWidget {
     required this.selections,
     required this.dayDecoration,
     required this.isSelected,
-    required this.selectedBoxDecoration,
+    required this.boxDecoration,
     required this.child,
   });
 
@@ -18,13 +18,14 @@ class CalendarDayBackground extends StatelessWidget {
     required DateTime date,
     required List<CalendarSelection> selections,
     DayDecoration dayDecoration = const DayDecoration(),
+    BoxDecoration? boxDecoration,
   }) {
     return CalendarDayBackground._(
       date: date,
       selections: selections,
       dayDecoration: dayDecoration,
       isSelected: false,
-      selectedBoxDecoration: null,
+      boxDecoration: boxDecoration,
       child: child,
     );
   }
@@ -34,14 +35,14 @@ class CalendarDayBackground extends StatelessWidget {
     required DateTime date,
     required List<CalendarSelection> selections,
     DayDecoration dayDecoration = const DayDecoration(),
-    BoxDecoration? selectedBoxDecoration,
+    BoxDecoration? boxDecoration,
   }) {
     return CalendarDayBackground._(
       date: date,
       selections: selections,
       dayDecoration: dayDecoration,
       isSelected: true,
-      selectedBoxDecoration: selectedBoxDecoration,
+      boxDecoration: boxDecoration,
       child: child,
     );
   }
@@ -49,7 +50,7 @@ class CalendarDayBackground extends StatelessWidget {
   final DateTime date;
   final List<CalendarSelection> selections;
   final DayDecoration dayDecoration;
-  final BoxDecoration? selectedBoxDecoration;
+  final BoxDecoration? boxDecoration;
   final bool isSelected;
   final Widget child;
 
@@ -83,11 +84,11 @@ class CalendarDayBackground extends StatelessWidget {
 
           return BoxDecoration(
             color:
-                selectedBoxDecoration?.color ??
+                boxDecoration?.color ??
                 selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
-            border: selectedBoxDecoration?.border,
+            border: boxDecoration?.border,
             borderRadius:
-                selectedBoxDecoration?.borderRadius ??
+                boxDecoration?.borderRadius ??
                 BorderRadius.only(
                   topLeft: startMatch ? radius : Radius.zero,
                   bottomLeft: startMatch ? radius : Radius.zero,
@@ -122,57 +123,75 @@ class CalendarDayBackground extends StatelessWidget {
       if (startMatch && endMatch) {
         backgroundDecorations.add(
           BoxDecoration(
-            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            borderRadius: BorderRadius.all(Radius.circular(9999)),
+            color:
+                boxDecoration?.color ??
+                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius:
+                boxDecoration?.borderRadius ??
+                BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
           ),
         );
 
         circleDecorations.add(
           BoxDecoration(
-            color: baseColor,
-            borderRadius: BorderRadius.all(
-              Radius.circular(dayDecoration.selectedRadius),
-            ),
+            color: boxDecoration?.color ?? baseColor,
+            borderRadius:
+                boxDecoration?.borderRadius ??
+                BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
           ),
         );
       } else if (startMatch) {
         // START RANGE
         backgroundDecorations.add(
           BoxDecoration(
-            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(9999),
-              bottomLeft: Radius.circular(9999),
-            ),
+            color:
+                boxDecoration?.color ??
+                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius:
+                boxDecoration?.borderRadius ??
+                BorderRadius.only(
+                  topLeft: Radius.circular(dayDecoration.selectedRadius),
+                  bottomLeft: Radius.circular(dayDecoration.selectedRadius),
+                ),
           ),
         );
 
         circleDecorations.add(
           BoxDecoration(
-            color: dayDecoration.selectedDayBackgroundColor ?? baseColor,
-            borderRadius: BorderRadius.all(
-              Radius.circular(dayDecoration.selectedRadius),
-            ),
+            color:
+                boxDecoration?.color ??
+                dayDecoration.selectedDayBackgroundColor ??
+                baseColor,
+            borderRadius:
+                boxDecoration?.borderRadius ??
+                BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
           ),
         );
       } else if (endMatch) {
         // END RANGE
         backgroundDecorations.add(
           BoxDecoration(
-            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            borderRadius: BorderRadius.only(
-              topRight: Radius.circular(9999),
-              bottomRight: Radius.circular(9999),
-            ),
+            color:
+                boxDecoration?.color ??
+                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius:
+                boxDecoration?.borderRadius ??
+                BorderRadius.only(
+                  topRight: Radius.circular(dayDecoration.selectedRadius),
+                  bottomRight: Radius.circular(dayDecoration.selectedRadius),
+                ),
           ),
         );
 
         circleDecorations.add(
           BoxDecoration(
-            color: dayDecoration.selectedDayBackgroundColor ?? baseColor,
-            borderRadius: BorderRadius.all(
-              Radius.circular(dayDecoration.selectedRadius),
-            ),
+            color:
+                boxDecoration?.color ??
+                dayDecoration.selectedDayBackgroundColor ??
+                baseColor,
+            borderRadius:
+                boxDecoration?.borderRadius ??
+                BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
           ),
         );
       } else if (date.isAfter(selection.start) &&
@@ -180,7 +199,9 @@ class CalendarDayBackground extends StatelessWidget {
         // MIDDLE DAYS
         backgroundDecorations.add(
           BoxDecoration(
-            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            color:
+                boxDecoration?.color ??
+                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
           ),
         );
       }
