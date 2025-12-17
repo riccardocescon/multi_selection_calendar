@@ -8,6 +8,7 @@ class CalendarController extends ChangeNotifier {
   CalendarController({
     required ConflictMode conflictMode,
     void Function(CalendarSelection selection)? onSelectionAdded,
+    void Function(DateTime day)? onSelectDay,
     List<CalendarSelection> initialSelections = const [],
     SelectionSettings? selectionSettings,
     Color initColor = Colors.blue,
@@ -16,6 +17,7 @@ class CalendarController extends ChangeNotifier {
       conflictMode: conflictMode,
       initialColor: initColor,
       onSelectionAdded: onSelectionAdded,
+      onSelectDay: onSelectDay,
       selections: initialSelections,
       selectionSettings: selectionSettings,
     );
@@ -93,6 +95,7 @@ class _SelectionHandler {
   final ConflictMode conflictMode;
   late Color _nextColor;
   final void Function(CalendarSelection selection)? onSelectionAdded;
+  final void Function(DateTime day)? onSelectDay;
   late final SelectionSettings? _selectionSettings;
 
   List<CalendarSelection> get allSelections => List.unmodifiable(_selections);
@@ -102,6 +105,7 @@ class _SelectionHandler {
     required this.conflictMode,
     required Color initialColor,
     this.onSelectionAdded,
+    this.onSelectDay,
     List<CalendarSelection> selections = const [],
     SelectionSettings? selectionSettings,
   }) {
@@ -143,69 +147,76 @@ class _SelectionHandler {
       if (conflictMode == ConflictMode.override) {
         _selections.removeWhere((selection) => _isDateinRange(day, selection));
       }
-    } else if (day.isSameDate(_lastSelectedDay!)) {
-      _lastSelectedDay = null;
-    } else {
-      final minDay = day.isBefore(_lastSelectedDay!) ? day : _lastSelectedDay!;
-      final maxDay = day.isAfter(_lastSelectedDay!) ? day : _lastSelectedDay!;
-      CalendarSelection calendarSelection = CalendarSelection(
-        start: minDay,
-        end: maxDay,
-        color: _nextColor,
-      );
 
-      if (conflictMode == ConflictMode.override) {
-        _selections.removeWhere((selection) {
-          if (_isDateinRange(minDay, selection)) return true;
-          if (_isDateinRange(maxDay, selection)) return true;
-
-          if (_isDateinRange(selection.start, calendarSelection)) return true;
-          if (_isDateinRange(selection.end, calendarSelection)) return true;
-
-          return false;
-        });
-      } else if (conflictMode == ConflictMode.merge) {
-        final overlappingSelections = _selections.where((selection) {
-          if (_isDateinRange(minDay, selection)) return true;
-          if (_isDateinRange(maxDay, selection)) return true;
-
-          if (_isDateinRange(selection.start, calendarSelection)) return true;
-          if (_isDateinRange(selection.end, calendarSelection)) return true;
-
-          return false;
-        }).toList();
-
-        if (overlappingSelections.isNotEmpty) {
-          DateTime mergedStart = calendarSelection.start;
-          DateTime mergedEnd = calendarSelection.end;
-
-          for (final selection in overlappingSelections) {
-            if (selection.start.isBefore(mergedStart)) {
-              mergedStart = selection.start;
-            }
-            if (selection.end.isAfter(mergedEnd)) {
-              mergedEnd = selection.end;
-            }
-          }
-
-          // Remove overlapping selections
-          _selections.removeWhere(
-            (selection) => overlappingSelections.contains(selection),
-          );
-
-          // Create new merged selection
-          calendarSelection = CalendarSelection(
-            start: mergedStart,
-            end: mergedEnd,
-            color: _nextColor,
-          );
-        }
-      }
-
-      _selections.add(calendarSelection);
-      _lastSelectedDay = null;
-      onSelectionAdded?.call(calendarSelection);
+      onSelectDay?.call(day);
+      return;
     }
+
+    if (day.isSameDate(_lastSelectedDay!)) {
+      _lastSelectedDay = null;
+      onSelectDay?.call(day);
+      return;
+    }
+
+    final minDay = day.isBefore(_lastSelectedDay!) ? day : _lastSelectedDay!;
+    final maxDay = day.isAfter(_lastSelectedDay!) ? day : _lastSelectedDay!;
+    CalendarSelection calendarSelection = CalendarSelection(
+      start: minDay,
+      end: maxDay,
+      color: _nextColor,
+    );
+
+    if (conflictMode == ConflictMode.override) {
+      _selections.removeWhere((selection) {
+        if (_isDateinRange(minDay, selection)) return true;
+        if (_isDateinRange(maxDay, selection)) return true;
+
+        if (_isDateinRange(selection.start, calendarSelection)) return true;
+        if (_isDateinRange(selection.end, calendarSelection)) return true;
+
+        return false;
+      });
+    } else if (conflictMode == ConflictMode.merge) {
+      final overlappingSelections = _selections.where((selection) {
+        if (_isDateinRange(minDay, selection)) return true;
+        if (_isDateinRange(maxDay, selection)) return true;
+
+        if (_isDateinRange(selection.start, calendarSelection)) return true;
+        if (_isDateinRange(selection.end, calendarSelection)) return true;
+
+        return false;
+      }).toList();
+
+      if (overlappingSelections.isNotEmpty) {
+        DateTime mergedStart = calendarSelection.start;
+        DateTime mergedEnd = calendarSelection.end;
+
+        for (final selection in overlappingSelections) {
+          if (selection.start.isBefore(mergedStart)) {
+            mergedStart = selection.start;
+          }
+          if (selection.end.isAfter(mergedEnd)) {
+            mergedEnd = selection.end;
+          }
+        }
+
+        // Remove overlapping selections
+        _selections.removeWhere(
+          (selection) => overlappingSelections.contains(selection),
+        );
+
+        // Create new merged selection
+        calendarSelection = CalendarSelection(
+          start: mergedStart,
+          end: mergedEnd,
+          color: _nextColor,
+        );
+      }
+    }
+
+    _selections.add(calendarSelection);
+    _lastSelectedDay = null;
+    onSelectionAdded?.call(calendarSelection);
   }
 
   void removeSelection(CalendarSelection selection) {
