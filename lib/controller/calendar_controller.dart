@@ -11,6 +11,7 @@ class CalendarController extends ChangeNotifier {
     void Function(DateTime day)? onSelectDay,
     List<CalendarSelection> initialSelections = const [],
     SelectionSettings? selectionSettings,
+    TapSettings? tapSettings,
     Color initColor = Colors.blue,
   }) {
     _selectionHandler = _SelectionHandler(
@@ -20,6 +21,7 @@ class CalendarController extends ChangeNotifier {
       onSelectDay: onSelectDay,
       selections: initialSelections,
       selectionSettings: selectionSettings,
+      tapSettings: tapSettings,
     );
     notifyListeners();
   }
@@ -89,6 +91,19 @@ class SelectionSettings {
   });
 }
 
+class TapSettings {
+  /// Whether a tap should select a single day.
+  final bool enableTapSelection;
+
+  /// Whether a tap should select a range of days.
+  final bool enableRangeSelection;
+
+  const TapSettings({
+    this.enableTapSelection = true,
+    this.enableRangeSelection = true,
+  });
+}
+
 class _SelectionHandler {
   late final _selections = <CalendarSelection>[];
   DateTime? _lastSelectedDay;
@@ -97,6 +112,7 @@ class _SelectionHandler {
   final void Function(CalendarSelection selection)? onSelectionAdded;
   final void Function(DateTime day)? onSelectDay;
   late final SelectionSettings? _selectionSettings;
+  late final TapSettings? _tapSettings;
 
   List<CalendarSelection> get allSelections => List.unmodifiable(_selections);
   Color get nextColor => _nextColor;
@@ -108,10 +124,12 @@ class _SelectionHandler {
     this.onSelectDay,
     List<CalendarSelection> selections = const [],
     SelectionSettings? selectionSettings,
+    TapSettings? tapSettings,
   }) {
     _selections.addAll(selections);
     _nextColor = initialColor;
     _selectionSettings = selectionSettings;
+    _tapSettings = tapSettings;
   }
 
   // Utils
@@ -125,6 +143,18 @@ class _SelectionHandler {
   void setSelectionColor(Color newColor) => _nextColor = newColor;
 
   void selectDay(DateTime day) {
+    if (_tapSettings?.enableTapSelection == false) return;
+
+    if (_lastSelectedDay != null && day.isSameDate(_lastSelectedDay!)) {
+      _lastSelectedDay = null;
+      onSelectDay?.call(day);
+      return;
+    }
+
+    if (_tapSettings?.enableRangeSelection == false) {
+      _lastSelectedDay = null;
+    }
+
     if (_lastSelectedDay == null) {
       final maxSizeReached =
           _selectionSettings != null &&
@@ -148,12 +178,6 @@ class _SelectionHandler {
         _selections.removeWhere((selection) => _isDateinRange(day, selection));
       }
 
-      onSelectDay?.call(day);
-      return;
-    }
-
-    if (day.isSameDate(_lastSelectedDay!)) {
-      _lastSelectedDay = null;
       onSelectDay?.call(day);
       return;
     }

@@ -13,7 +13,7 @@ class DayDecoration {
   const DayDecoration({
     this.dayTextStyle,
     this.dayBackgroundColor,
-    this.selectedRadius = 32,
+    this.selectedRadius = 9999,
     this.verticalMargin = 1.0,
     this.selectedDayBackgroundColor,
     this.cellBackgroundColor,
