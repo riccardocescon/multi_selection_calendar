@@ -13,9 +13,9 @@ class CalendarDayBackground extends StatelessWidget {
   });
 
   factory CalendarDayBackground.day({
+    required Widget child,
     required DateTime date,
     required List<CalendarSelection> selections,
-    required Widget child,
     DayDecoration dayDecoration = const DayDecoration(),
   }) {
     return CalendarDayBackground._(
@@ -28,13 +28,14 @@ class CalendarDayBackground extends StatelessWidget {
   }
 
   factory CalendarDayBackground.selected({
-    required List<CalendarSelection> selections,
     required Widget child,
+    required List<CalendarSelection> selections,
+    DayDecoration dayDecoration = const DayDecoration(),
   }) {
     return CalendarDayBackground._(
       date: DateTime.now(),
       selections: selections,
-      dayDecoration: const DayDecoration(),
+      dayDecoration: dayDecoration,
       isSelected: true,
       child: child,
     );
