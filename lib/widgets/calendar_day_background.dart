@@ -126,6 +126,7 @@ class CalendarDayBackground extends StatelessWidget {
             color:
                 boxDecoration?.color ??
                 baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            border: boxDecoration?.border,
             borderRadius:
                 boxDecoration?.borderRadius ??
                 BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
@@ -135,6 +136,7 @@ class CalendarDayBackground extends StatelessWidget {
         circleDecorations.add(
           BoxDecoration(
             color: boxDecoration?.color ?? baseColor,
+            border: boxDecoration?.border,
             borderRadius:
                 boxDecoration?.borderRadius ??
                 BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
@@ -147,6 +149,7 @@ class CalendarDayBackground extends StatelessWidget {
             color:
                 boxDecoration?.color ??
                 baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            border: boxDecoration?.border,
             borderRadius:
                 boxDecoration?.borderRadius ??
                 BorderRadius.only(
@@ -162,6 +165,7 @@ class CalendarDayBackground extends StatelessWidget {
                 boxDecoration?.color ??
                 dayDecoration.selectedDayBackgroundColor ??
                 baseColor,
+            border: boxDecoration?.border,
             borderRadius:
                 boxDecoration?.borderRadius ??
                 BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
@@ -174,6 +178,7 @@ class CalendarDayBackground extends StatelessWidget {
             color:
                 boxDecoration?.color ??
                 baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            border: boxDecoration?.border,
             borderRadius:
                 boxDecoration?.borderRadius ??
                 BorderRadius.only(
@@ -189,6 +194,7 @@ class CalendarDayBackground extends StatelessWidget {
                 boxDecoration?.color ??
                 dayDecoration.selectedDayBackgroundColor ??
                 baseColor,
+            border: boxDecoration?.border,
             borderRadius:
                 boxDecoration?.borderRadius ??
                 BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
@@ -199,6 +205,7 @@ class CalendarDayBackground extends StatelessWidget {
         // MIDDLE DAYS
         backgroundDecorations.add(
           BoxDecoration(
+            border: boxDecoration?.border,
             color:
                 boxDecoration?.color ??
                 baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
