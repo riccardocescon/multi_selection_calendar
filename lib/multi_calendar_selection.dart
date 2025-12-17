@@ -7,3 +7,4 @@ export 'entities/header_decoration.dart';
 export 'entities/calendar_decorations.dart';
 export 'entities/calendar_animation_settings.dart';
 export 'entities/calendar_picker_decoration.dart';
+export 'enums/enums.dart';
