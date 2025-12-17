@@ -69,7 +69,9 @@ class _DayCell extends StatelessWidget {
 
     if (isDaySelected) {
       return CalendarDayBackground.selected(
+        date: date,
         selections: selections,
+        dayDecoration: dayDecoration,
         child: _text(context, calendarController != null),
       );
     }
