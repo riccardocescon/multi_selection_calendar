@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:multi_selection_calendar/controller/calendar_controller.dart';
+import 'package:multi_selection_calendar/entities/calendar_decorations.dart';
 import 'package:multi_selection_calendar/enums/enums.dart';
+import 'package:multi_selection_calendar/extensions/extensions.dart';
+import 'package:multi_selection_calendar/widgets/calendar_day_background.dart';
 import 'package:multi_selection_calendar/widgets/multi_selection_calendar.dart';
 
 void main() {
@@ -68,53 +71,73 @@ class _MyAppState extends State<MyApp> {
               padding: const EdgeInsets.all(32),
               child: MultiSelectionCalendar(
                 controller: _calendarController,
-                // dayBuilder: (date, daySelections, isSelected) {
-                //   if (isSelected) {
-                //     return CalendarDayBackground.selected(
-                //       selections: daySelections,
-                //       child: Text(
-                //         '${date.day}',
-                //         style: const TextStyle(
-                //           fontWeight: FontWeight.bold,
-                //           color: Colors.white,
-                //         ),
-                //       ),
-                //     );
-                //   }
+                dayBuilder: (date, daySelections, isSelected) {
+                  if (isSelected) {
+                    return CalendarDayBackground.selected(
+                      date: date,
+                      selections: daySelections,
+                      child: Text(
+                        '${date.day}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  }
 
-                //   if (daySelections.isEmpty) return null;
-                //   final isEndpoint = daySelections.any(
-                //     (e) => date.isSameDate(e.start) || date.isSameDate(e.end),
-                //   );
-                //   if (!isEndpoint) return null;
+                  if (daySelections.isEmpty) return null;
+                  final isEndpoint = daySelections.any(
+                    (e) => date.isSameDate(e.start) || date.isSameDate(e.end),
+                  );
+                  if (!isEndpoint) {
+                    return CalendarDayBackground.selected(
+                      date: date,
+                      selections: daySelections,
+                      dayDecoration: DayDecoration(
+                        selectedDayBackgroundColor: Colors.transparent,
+                      ),
+                      boxDecoration: BoxDecoration(
+                        border: Border.all(color: Colors.purple, width: 2),
+                        borderRadius: BorderRadius.all(Radius.circular(9999)),
+                      ),
+                      child: Text(
+                        '${date.day}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  }
 
-                //   return CalendarDayBackground.day(
-                //     date: date,
-                //     selections: daySelections,
-                //     dayDecoration: DayDecoration(
-                //       selectedDayBackgroundColor: Colors.purple,
-                //     ),
-                //     child: Text(
-                //       '${date.day}',
-                //       style: const TextStyle(
-                //         fontWeight: FontWeight.bold,
-                //         color: Colors.white,
-                //       ),
-                //     ),
-                //   );
-                // },
-                // textStyleDayBuilder: (date, daySelections, enabled) {
-                //   if (daySelections.isEmpty) return null;
-                //   final isEndpoint = daySelections.any(
-                //     (e) => date.isSameDate(e.start) || date.isSameDate(e.end),
-                //   );
-                //   if (!isEndpoint) return null;
+                  return CalendarDayBackground.day(
+                    date: date,
+                    selections: daySelections,
+                    dayDecoration: DayDecoration(
+                      selectedDayBackgroundColor: Colors.purple,
+                    ),
+                    child: Text(
+                      '${date.day}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
+                textStyleDayBuilder: (date, daySelections, enabled) {
+                  if (daySelections.isEmpty) return null;
+                  final isEndpoint = daySelections.any(
+                    (e) => date.isSameDate(e.start) || date.isSameDate(e.end),
+                  );
+                  if (!isEndpoint) return null;
 
-                //   return const TextStyle(
-                //     fontWeight: FontWeight.bold,
-                //     color: Colors.white,
-                //   );
-                // },
+                  return const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  );
+                },
               ),
             ),
             FilledButton(

@@ -83,23 +83,24 @@ class CalendarDayBackground extends StatelessWidget {
           final radius = Radius.circular(dayDecoration.selectedRadius);
 
           return BoxDecoration(
-            color:
-                boxDecoration?.color ??
-                selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
-            border: boxDecoration?.border,
-            borderRadius:
-                boxDecoration?.borderRadius ??
-                BorderRadius.only(
-                  topLeft: startMatch ? radius : Radius.zero,
-                  bottomLeft: startMatch ? radius : Radius.zero,
-                  topRight: endMatch ? radius : Radius.zero,
-                  bottomRight: endMatch ? radius : Radius.zero,
-                ),
+            color: selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.only(
+              topLeft: startMatch ? radius : Radius.zero,
+              bottomLeft: startMatch ? radius : Radius.zero,
+              topRight: endMatch ? radius : Radius.zero,
+              bottomRight: endMatch ? radius : Radius.zero,
+            ),
           );
         }),
         BoxDecoration(
-          color: dayDecoration.selectedDayBackgroundColor ?? Colors.blue,
-          borderRadius: BorderRadius.all(Radius.circular(9999)),
+          color:
+              boxDecoration?.color ??
+              dayDecoration.selectedDayBackgroundColor ??
+              Colors.blue,
+          border: boxDecoration?.border,
+          borderRadius:
+              boxDecoration?.borderRadius ??
+              BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
         ),
       ];
     }
