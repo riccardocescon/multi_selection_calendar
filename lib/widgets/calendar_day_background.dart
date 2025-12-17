@@ -108,7 +108,14 @@ class CalendarDayBackground extends StatelessWidget {
     if (selections.isEmpty) {
       return [
         BoxDecoration(
-          color: dayDecoration.cellBackgroundColor ?? Colors.transparent,
+          border: boxDecoration?.border,
+          borderRadius:
+              boxDecoration?.borderRadius ??
+              BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
+          color:
+              boxDecoration?.color ??
+              dayDecoration.cellBackgroundColor ??
+              Colors.transparent,
         ),
       ];
     }
@@ -124,13 +131,10 @@ class CalendarDayBackground extends StatelessWidget {
       if (startMatch && endMatch) {
         backgroundDecorations.add(
           BoxDecoration(
-            color:
-                boxDecoration?.color ??
-                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            border: boxDecoration?.border,
-            borderRadius:
-                boxDecoration?.borderRadius ??
-                BorderRadius.all(Radius.circular(dayDecoration.selectedRadius)),
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.all(
+              Radius.circular(dayDecoration.selectedRadius),
+            ),
           ),
         );
 
@@ -147,16 +151,11 @@ class CalendarDayBackground extends StatelessWidget {
         // START RANGE
         backgroundDecorations.add(
           BoxDecoration(
-            color:
-                boxDecoration?.color ??
-                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            border: boxDecoration?.border,
-            borderRadius:
-                boxDecoration?.borderRadius ??
-                BorderRadius.only(
-                  topLeft: Radius.circular(dayDecoration.selectedRadius),
-                  bottomLeft: Radius.circular(dayDecoration.selectedRadius),
-                ),
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(dayDecoration.selectedRadius),
+              bottomLeft: Radius.circular(dayDecoration.selectedRadius),
+            ),
           ),
         );
 
@@ -176,16 +175,11 @@ class CalendarDayBackground extends StatelessWidget {
         // END RANGE
         backgroundDecorations.add(
           BoxDecoration(
-            color:
-                boxDecoration?.color ??
-                baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
-            border: boxDecoration?.border,
-            borderRadius:
-                boxDecoration?.borderRadius ??
-                BorderRadius.only(
-                  topRight: Radius.circular(dayDecoration.selectedRadius),
-                  bottomRight: Radius.circular(dayDecoration.selectedRadius),
-                ),
+            color: baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(dayDecoration.selectedRadius),
+              bottomRight: Radius.circular(dayDecoration.selectedRadius),
+            ),
           ),
         );
 
@@ -206,12 +200,27 @@ class CalendarDayBackground extends StatelessWidget {
         // MIDDLE DAYS
         backgroundDecorations.add(
           BoxDecoration(
-            border: boxDecoration?.border,
             color:
                 boxDecoration?.color ??
                 baseColor.withAlpha(dayDecoration.cellSelectionAlpha),
           ),
         );
+        if (boxDecoration != null) {
+          circleDecorations.add(
+            BoxDecoration(
+              border: boxDecoration?.border,
+              color:
+                  boxDecoration?.color ??
+                  dayDecoration.selectedDayBackgroundColor ??
+                  baseColor,
+              borderRadius:
+                  boxDecoration?.borderRadius ??
+                  BorderRadius.all(
+                    Radius.circular(dayDecoration.selectedRadius),
+                  ),
+            ),
+          );
+        }
       }
     }
 
