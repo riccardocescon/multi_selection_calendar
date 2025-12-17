@@ -9,6 +9,7 @@ class CalendarDayBackground extends StatelessWidget {
     required this.selections,
     required this.dayDecoration,
     required this.isSelected,
+    required this.selectedBoxDecoration,
     required this.child,
   });
 
@@ -23,6 +24,7 @@ class CalendarDayBackground extends StatelessWidget {
       selections: selections,
       dayDecoration: dayDecoration,
       isSelected: false,
+      selectedBoxDecoration: null,
       child: child,
     );
   }
@@ -32,12 +34,14 @@ class CalendarDayBackground extends StatelessWidget {
     required DateTime date,
     required List<CalendarSelection> selections,
     DayDecoration dayDecoration = const DayDecoration(),
+    BoxDecoration? selectedBoxDecoration,
   }) {
     return CalendarDayBackground._(
       date: date,
       selections: selections,
       dayDecoration: dayDecoration,
       isSelected: true,
+      selectedBoxDecoration: selectedBoxDecoration,
       child: child,
     );
   }
@@ -45,6 +49,7 @@ class CalendarDayBackground extends StatelessWidget {
   final DateTime date;
   final List<CalendarSelection> selections;
   final DayDecoration dayDecoration;
+  final BoxDecoration? selectedBoxDecoration;
   final bool isSelected;
   final Widget child;
 
@@ -77,13 +82,18 @@ class CalendarDayBackground extends StatelessWidget {
           final radius = Radius.circular(dayDecoration.selectedRadius);
 
           return BoxDecoration(
-            color: selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
-            borderRadius: BorderRadius.only(
-              topLeft: startMatch ? radius : Radius.zero,
-              bottomLeft: startMatch ? radius : Radius.zero,
-              topRight: endMatch ? radius : Radius.zero,
-              bottomRight: endMatch ? radius : Radius.zero,
-            ),
+            color:
+                selectedBoxDecoration?.color ??
+                selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
+            border: selectedBoxDecoration?.border,
+            borderRadius:
+                selectedBoxDecoration?.borderRadius ??
+                BorderRadius.only(
+                  topLeft: startMatch ? radius : Radius.zero,
+                  bottomLeft: startMatch ? radius : Radius.zero,
+                  topRight: endMatch ? radius : Radius.zero,
+                  bottomRight: endMatch ? radius : Radius.zero,
+                ),
           );
         }),
         BoxDecoration(
