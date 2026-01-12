@@ -13,6 +13,7 @@ class CalendarController extends ChangeNotifier {
     SelectionSettings? selectionSettings,
     TapSettings? tapSettings,
     Color initColor = Colors.blue,
+    DateTime? selectedDay,
   }) {
     _selectionHandler = _SelectionHandler(
       conflictMode: conflictMode,
@@ -22,6 +23,7 @@ class CalendarController extends ChangeNotifier {
       selections: initialSelections,
       selectionSettings: selectionSettings,
       tapSettings: tapSettings,
+      selectedDay: selectedDay,
     );
     notifyListeners();
   }
@@ -125,11 +127,13 @@ class _SelectionHandler {
     List<CalendarSelection> selections = const [],
     SelectionSettings? selectionSettings,
     TapSettings? tapSettings,
+    DateTime? selectedDay,
   }) {
     _selections.addAll(selections);
     _nextColor = initialColor;
     _selectionSettings = selectionSettings;
     _tapSettings = tapSettings;
+    _lastSelectedDay = selectedDay;
   }
 
   // Utils
