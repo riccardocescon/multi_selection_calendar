@@ -73,8 +73,15 @@ class CalendarDayBackground extends StatelessWidget {
   }
 
   List<BoxDecoration> get _buildSelectionDecoration {
-    if (isSelected) {
-      // Get the selected day decoration
+    // Verifica se questo giorno fa parte di una selezione (start, end o middle)
+    final isPartOfSelection = selections.any(
+      (selection) =>
+          date.isSameDate(selection.start) ||
+          date.isSameDate(selection.end) ||
+          (date.isAfter(selection.start) && date.isBefore(selection.end)),
+    );
+    if (isSelected || isPartOfSelection) {
+      // Get the selected day decoration - use full opacity for selected days
       return [
         ...selections.map((selection) {
           final startMatch = date.isSameDate(selection.start);
@@ -83,7 +90,7 @@ class CalendarDayBackground extends StatelessWidget {
           final radius = Radius.circular(dayDecoration.selectedRadius);
 
           return BoxDecoration(
-            color: selection.color.withAlpha(dayDecoration.cellSelectionAlpha),
+            color: selection.color,
             borderRadius: BorderRadius.only(
               topLeft: startMatch ? radius : Radius.zero,
               bottomLeft: startMatch ? radius : Radius.zero,
