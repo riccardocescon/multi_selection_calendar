@@ -42,6 +42,8 @@ class CalendarController extends ChangeNotifier {
   /// If null, no day is currently selected.
   DateTime? get lastSelectedDay => _selectionHandler.lastSelectedDay;
 
+  TapSettings? get tapSettings => _selectionHandler._tapSettings;
+
   /// Select a day in the calendar.
   void selectDay(DateTime date) {
     _selectionHandler.selectDay(date);
@@ -95,15 +97,23 @@ class SelectionSettings {
 
 class TapSettings {
   /// Whether a tap should select a single day.
-  final bool enableTapSelection;
+  bool _enableTapSelection;
+  bool get enableTapSelection => _enableTapSelection;
 
   /// Whether a tap should select a range of days.
-  final bool enableRangeSelection;
+  bool _enableRangeSelection;
+  bool get enableRangeSelection => _enableRangeSelection;
 
-  const TapSettings({
-    this.enableTapSelection = true,
-    this.enableRangeSelection = true,
-  });
+  void toggleTapSelection({bool? forceValue}) =>
+      _enableTapSelection = forceValue ?? !_enableTapSelection;
+  void toggleRangeSelection({bool? forceValue}) =>
+      _enableRangeSelection = forceValue ?? !_enableRangeSelection;
+
+  TapSettings({
+    bool enableTapSelection = true,
+    bool enableRangeSelection = true,
+  }) : _enableTapSelection = enableTapSelection,
+       _enableRangeSelection = enableRangeSelection;
 }
 
 class _SelectionHandler {

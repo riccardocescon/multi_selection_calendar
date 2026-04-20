@@ -25,7 +25,7 @@ void main() {
         expect(selection.start, date1);
         expect(selection.end, date2);
 
-        expect(calendarController.lastSelectedDay, isNull);
+        expect(calendarController.lastSelectedDay, null);
 
         calendarController.dispose();
       });
@@ -52,7 +52,7 @@ void main() {
         expect(calendarController.getSelections(date1).length, 0);
         expect(calendarController.getSelections(date2).length, 0);
         expect(calendarController.getSelections(date3).length, 0);
-        expect(calendarController.lastSelectedDay, isNull);
+        expect(calendarController.lastSelectedDay, null);
 
         calendarController.dispose();
       });
@@ -70,7 +70,7 @@ void main() {
         calendarController.selectDay(date1);
 
         expect(calendarController.getSelections(date1).length, 0);
-        expect(calendarController.lastSelectedDay, isNull);
+        expect(calendarController.lastSelectedDay, null);
 
         calendarController.dispose();
       });
@@ -118,7 +118,7 @@ void main() {
         calendarController.selectDay(date3);
 
         expect(calendarController.getSelections(date3).length, 0);
-        expect(calendarController.lastSelectedDay, isNull);
+        expect(calendarController.lastSelectedDay, null);
         expect(calendarController.getSelections(date1).length, 1);
         expect(calendarController.getSelections(date2).length, 1);
 
